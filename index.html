@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามน้ำบริสุทธิ์ RO - สถาบันบำราศนราดูร</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Flatpickr (ระบบปฏิทิน) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -18,15 +22,18 @@
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .card-custom { background-color: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 20px; }
         .header-title { background: linear-gradient(90deg, #1e293b, #0f172a); border-radius: 20px; border-left: 5px solid #38bdf8; }
+        
         .digital-value { font-size: 2rem; font-weight: bold; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
         .digital-sm { font-size: 1.5rem; font-weight: bold; color: #f8fafc; }
         .digital-xl { font-size: 2.5rem; font-weight: bold; }
         
+        /* 3D Thermometer */
         .thermo-container { display: flex; align-items: center; justify-content: center; gap: 15px; }
         .thermo-glass { width: 25px; height: 100px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%); border: 2px solid #475569; border-radius: 15px; position: relative; box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.8); }
         .thermo-fluid { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, #3b82f6, #ef4444); border-radius: 10px; transition: height 1s; }
         .thermo-bulb { width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb); border-radius: 50%; position: absolute; bottom: -20px; left: -7px; border: 2px solid #475569; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5); }
         
+        /* 3D Rotameter */
         .rotameter-wrapper { display: flex; align-items: center; justify-content: center; position: relative; }
         .rotameter-scale { display: flex; flex-direction: column; justify-content: space-between; height: 200px; font-size: 0.75rem; color: #94a3b8; text-align: right; padding-right: 4px; font-weight: bold; }
         .rotameter { width: 45px; height: 200px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.05) 100%); border: 2px solid #475569; border-radius: 20px; position: relative; display: flex; justify-content: center; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.9), 3px 3px 10px rgba(0,0,0,0.5); }
@@ -39,6 +46,7 @@
         .table-dark-custom { background-color: #0f172a; color: #cbd5e1; border-color: #334155; }
         .table-dark-custom th { background-color: #1e293b; color: #38bdf8; position: sticky; top: 0; z-index: 10;}
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
         .flatpickr-calendar { font-family: 'Segoe UI', sans-serif; }
         .flatpickr-day.has-data { color: #10b981 !important; font-weight: bold; }
         .flatpickr-day.no-data-past { color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1); }
@@ -49,9 +57,10 @@
 </head>
 <body class="p-3 p-md-4">
 
+    <!-- Loading Screen -->
     <div id="loadingOverlay">
         <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h4 class="mt-3 text-info">กำลังโหลดข้อมูล...</h4>
+        <h4 class="mt-3 text-info">กำลังโหลดข้อมูลระบบน้ำ...</h4>
     </div>
 
     <!-- Header & Filter -->
@@ -84,11 +93,7 @@
                     <h5 class="text-info m-0"><i class="fas fa-robot me-2"></i>ปลั๊กอินวิเคราะห์ระบบน้ำ (TRT Analysis)</h5>
                     <button class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="callAI()"><i class="fas fa-magic me-1"></i> ให้ AI วิเคราะห์เชิงลึก</button>
                 </div>
-                
-                <!-- ผลวิเคราะห์ Rule-based อัตโนมัติ -->
                 <div id="analysisResult" class="analysis-box"></div>
-                
-                <!-- ผลวิเคราะห์จาก API (ซ่อนไว้จนกว่าจะกดปุ่ม) -->
                 <div id="aiResultBox" class="ai-result-box">
                     <h6 class="text-info fw-bold mb-2"><i class="fas fa-brain me-2"></i>ความเห็นจาก AI (Deep Analysis)</h6>
                     <div id="aiText" style="font-size: 0.95rem;"></div>
@@ -97,7 +102,7 @@
         </div>
     </div>
 
-    <!-- โซน 1-3 ตามเดิม (แสดงตัวเลข, เข็มไมล์, แท่งแก้ว) -->
+    <!-- โซนที่ 1: คุณภาพน้ำ (Water Quality) -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">ORP น้ำเข้า</small><div class="digital-sm text-warning mt-1"><span id="valOrp">0</span> <span class="fs-6">mV</span></div></div></div>
         <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">Chlorine น้ำดิบ {0.3-0.5}</small><div class="digital-sm text-warning mt-1"><span id="valCl">-</span> <span class="fs-6">ppm</span></div></div></div>
@@ -114,6 +119,7 @@
         </div>
     </div>
 
+    <!-- โซนที่ 2: แรงดันระบบก่อนกรอง -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
@@ -130,6 +136,7 @@
         </div>
     </div>
 
+    <!-- โซนที่ 3: ระบบ RO, อัตราการไหล และ ประสิทธิภาพ -->
     <div class="row g-3 mb-4">
         <div class="col-lg-5">
             <div class="card-custom h-100 d-flex flex-column">
@@ -178,7 +185,7 @@
         </div>
     </div>
 
-    <!-- โซน 4: กราฟ และ สถานะ -->
+    <!-- โซนที่ 4: สถานะ & กราฟ -->
     <div class="row g-3 mb-4">
         <div class="col-lg-4">
             <div class="card-custom h-100">
@@ -205,12 +212,12 @@
         </div>
     </div>
 
-    <!-- โซน 5: ตารางย้อนหลัง -->
-    <div class="row g-3">
+    <!-- โซนที่ 5: ตารางย้อนหลัง RO -->
+    <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
                 <h6 class="text-secondary mb-3"><i class="fas fa-table me-2"></i>ประวัติตรวจเช็คระบบน้ำ RO (ตลอดทั้งเดือน)</h6>
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
                     <table class="table table-bordered table-hover table-dark-custom text-center align-middle mb-0">
                         <thead>
                             <tr>
@@ -229,15 +236,88 @@
         </div>
     </div>
 
+    <!-- โซนที่ 6: ผลเพาะเชื้อระบบน้ำ C/S และโฟลเดอร์รายงาน -->
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="card-custom border-success p-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                    <div>
+                        <h5 class="text-white m-0"><i class="fa-solid fa-microscope text-success me-2"></i>ผลเพาะเชื้อระบบน้ำ (Water Culture C/S Results & Folders)</h5>
+                        <small class="text-muted">ผลการตรวจวิเคราะห์ทางห้องปฏิบัติการและโฟลเดอร์รายงานประจำเดือน</small>
+                    </div>
+                    <div style="width: 250px;">
+                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาจุดตรวจ หรือ เดือน..." class="form-control bg-dark text-white border-secondary form-control-sm rounded-pill px-3" />
+                    </div>
+                </div>
+
+                <!-- ตาราง C/S ล่าสุด -->
+                <div class="mb-4">
+                    <h6 class="text-success fw-bold mb-3"><i class="fa-solid fa-table-list me-2"></i>ประวัติผลเพาะเชื้อ (C/S) ล่าสุดจากระบบ</h6>
+                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                        <table class="table table-bordered table-hover table-dark-custom text-center align-middle mb-0" style="font-size: 0.9rem;">
+                            <thead>
+                                <tr>
+                                    <th>วันที่</th>
+                                    <th>จุดตรวจ (Location)</th>
+                                    <th>ประเภท</th>
+                                    <th>ผลการตรวจ (CFU/ml)</th>
+                                    <th>ไฟล์ PDF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="csTableBody">
+                                <tr><td colspan="5" class="text-muted">กำลังโหลดข้อมูลผลเพาะเชื้อ...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <hr class="border-secondary my-4">
+                <h6 class="text-success fw-bold mb-3"><i class="fa-solid fa-folder-tree me-2"></i>โฟลเดอร์จัดเก็บรายงานผลเพาะเชื้อแยกตามรายเดือน</h6>
+                
+                <div id="csLoader" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์...</span>
+                </div>
+                
+                <div id="csFolderGroups" class="row g-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับแสดงไฟล์ PDF ภายในโฟลเดอร์ C/S -->
+    <div class="modal fade" id="csFileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
+                <div class="modal-header border-bottom border-secondary bg-success bg-opacity-10">
+                    <h5 class="modal-title text-success fw-bold" id="csModalTitle"><i class="fa-solid fa-folder-open me-2"></i>รายการรายงาน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
+                    <div id="csModalLoading" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="text-muted mt-2">กำลังดึงรายการไฟล์...</p>
+                    </div>
+                    <div id="csFileList" class="list-group list-group-flush bg-transparent"></div>
+                    <div id="csNoFiles" class="text-center py-4 text-muted hidden">
+                        <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
+                        <p>ไม่พบไฟล์เอกสารในโฟลเดอร์นี้</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script สำหรับทำงานทั้งหมด -->
     <script>
-        // URL ของ Google Script ของคุณ (ไม่ต้องแก้)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         
         let globalData = [];
-        let currentDayData = null; // เก็บข้อมูลวันปัจจุบันไว้ใช้กับปุ่ม AI
+        let currentDayData = null;
         let availableDates = [];
         let gauges = {};
         let monthlyChart;
+        let allCSResults = [];
+        const csMonthNamesFull = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
         function createGauge(elementId, maxVal, isRO) {
             let colorStops = isRO ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']];
@@ -326,7 +406,7 @@
                     availableDates.sort((a,b) => a.localeCompare(b));
                     initCalendar();
                 }
-            } catch (e) { console.error(e); alert("พบปัญหาในการดึงข้อมูล โปรดรีเฟรชหน้าจอ"); } 
+            } catch (e) { console.error(e); alert("พบปัญหาในการดึงข้อมูล RO โปรดรีเฟรชหน้าจอ"); } 
             finally { document.getElementById('loadingOverlay').style.display = 'none'; }
         }
 
@@ -345,7 +425,6 @@
             applyFilter(availableDates[availableDates.length - 1]);
         }
 
-        // ระบบวิเคราะห์ Rule-based เดิม
         function analyzeWaterSystem(data) {
             let alerts = []; let normals = [];
             let condRO = parseFloat(data.cond_ro) || 0;
@@ -367,13 +446,10 @@
             document.getElementById('analysisResult').innerHTML = html;
         }
 
-        // ฟังก์ชันเรียก API AI ไปหลังบ้าน (POST)
         async function callAI() {
             if(!currentDayData) return;
-            
             let aiBox = document.getElementById('aiResultBox');
             let aiText = document.getElementById('aiText');
-            
             aiBox.style.display = 'block';
             aiText.innerHTML = `<span class="spinner-border spinner-border-sm text-info me-2"></span> กำลังส่งข้อมูลให้ AI วิเคราะห์...`;
 
@@ -383,10 +459,8 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify({ action: 'analyze', data: currentDayData })
                 });
-                
                 const responseData = await res.json();
                 if(responseData.result) {
-                    // ใช้ Marked.js เพื่อแสดงตัวหนา/Bullet ได้สวยงาม
                     aiText.innerHTML = marked.parse(responseData.result);
                 } else {
                     aiText.innerHTML = `<span class="text-danger">เกิดข้อผิดพลาด: ${responseData.error}</span>`;
@@ -398,17 +472,13 @@
 
         function applyFilter(selectedDate) {
             if(!selectedDate) return;
-            
             let targetDataList = globalData.filter(d => d.dateStr === selectedDate);
             if(targetDataList.length > 0) {
-                currentDayData = targetDataList[targetDataList.length - 1]; // เก็บไว้ให้ AI
+                currentDayData = targetDataList[targetDataList.length - 1];
                 updateDashboard(currentDayData); 
                 analyzeWaterSystem(currentDayData);
-                
-                // ซ่อนกล่อง AI ทุกครั้งที่เปลี่ยนวันใหม่
                 document.getElementById('aiResultBox').style.display = 'none';
             }
-
             let selectedMonth = selectedDate.substring(0, 7); 
             let monthData = globalData.filter(d => d.monthStr === selectedMonth);
             renderChart(monthData);
@@ -493,280 +563,189 @@
             });
         }
 
+        // ==========================================
+        // ส่วนจัดการผลเพาะเชื้อ C/S และ โฟลเดอร์
+        // ==========================================
+        function loadCSDataAndFolders() {
+            google.script.run
+                .withSuccessHandler(function(results) {
+                    allCSResults = results;
+                    renderCSTable(results);
+                })
+                .getWaterCultureResults();
+
+            document.getElementById('csLoader').style.display = 'block';
+            google.script.run
+                .withSuccessHandler(function(folders) {
+                    document.getElementById('csLoader').style.display = 'none';
+                    renderCSGroups(folders);
+                })
+                .withFailureHandler(function(err) {
+                    document.getElementById('csLoader').style.display = 'none';
+                    document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">${err.message}</div>`;
+                })
+                .getMonthlyFolders();
+        }
+
+        function renderCSTable(data) {
+            const tbody = document.getElementById('csTableBody');
+            const keyword = document.getElementById('csSearchInput').value.trim().toLowerCase();
+            let filtered = data;
+            if (keyword) {
+                filtered = data.filter(item => 
+                    item.location.toLowerCase().includes(keyword) || 
+                    item.date.toLowerCase().includes(keyword) ||
+                    item.result.toLowerCase().includes(keyword)
+                );
+            }
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-muted py-3">ไม่พบข้อมูลผลเพาะเชื้อ</td></tr>`;
+                return;
+            }
+            let html = '';
+            filtered.slice(0, 20).forEach(row => {
+                let resColor = (row.result.toUpperCase() === 'NG' || row.result.includes('<')) ? 'text-success fw-bold' : 'text-danger fw-bold';
+                html += `
+                    <tr>
+                        <td><small class="text-secondary">${row.date}</small></td>
+                        <td class="text-start text-light">${row.location}</td>
+                        <td><span class="badge bg-secondary">${row.type}</span></td>
+                        <td class="${resColor}">${row.result}</td>
+                        <td>
+                            <a href="${row.fileUrl}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.75rem;">
+                                <i class="fa-solid fa-file-pdf"></i> เปิดดู
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function extractYM(name) {
+            let m = name.match(/(20\d{2}|25\d{2})[-\/\. ]?(0[1-9]|1[0-2])/);
+            if (m) return {year: m[1], month: m[2]};
+            m = name.match(/(0[1-9]|1[0-2])[-\/\. ]?(20\d{2}|25\d{2})/);
+            if (m) return {year: m[2], month: m[1]};
+            m = name.match(/(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)[ ]?(20\d{2}|25\d{2})/);
+            if (m) {
+                let month = String(csMonthNamesFull.indexOf(m[1])+1).padStart(2,'0');
+                return {year: m[2], month};
+            }
+            return {year:'อื่นๆ', month:'อื่นๆ'};
+        }
+
+        function renderCSGroups(folders) {
+            const container = document.getElementById('csFolderGroups');
+            let groups = {};
+            folders.forEach(f => {
+                let ym = extractYM(f.name);
+                let key = (ym.year !== 'อื่นๆ') ? `${ym.year}-${ym.month}` : 'อื่นๆ';
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(f);
+            });
+            let sortedKeys = Object.keys(groups).filter(k => k !== 'อื่นๆ').sort((a,b) => b.localeCompare(a));
+            if (groups['อื่นๆ']) sortedKeys.push('อื่นๆ');
+
+            if (folders.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-3">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>`;
+                return;
+            }
+
+            let html = '';
+            sortedKeys.forEach(key => {
+                let groupFolders = groups[key];
+                let groupTitle = 'อื่นๆ';
+                if (key !== 'อื่นๆ') {
+                    let [year, month] = key.split('-');
+                    let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
+                    let yLabel = year.startsWith('25') ? `พ.ศ. ${year}` : year;
+                    groupTitle = `${mName} ${yLabel}`;
+                }
+                html += `
+                    <div class="col-12">
+                        <div class="text-success fw-bold mb-2 mt-2" style="font-size: 0.9rem;">
+                            <i class="fa-solid fa-calendar-days me-1"></i> ${groupTitle}
+                        </div>
+                        <div class="row g-2">
+                `;
+                groupFolders.forEach(folder => {
+                    html += `
+                        <div class="col-md-4 col-sm-6">
+                            <div class="p-3 rounded-3 border border-secondary bg-dark bg-opacity-50 h-100 d-flex align-items-center justify-content-between shadow-sm" 
+                                 style="cursor: pointer; transition: all 0.2s;" 
+                                 onmouseover="this.style.borderColor='#198754'; this.style.transform='translateY(-2px)';" 
+                                 onmouseout="this.style.borderColor='#6c757d'; this.style.transform='translateY(0)';"
+                                 onclick="openCSModal('${folder.id}', '${folder.name}')">
+                                <div class="d-flex align-items-center gap-3 overflow-hidden">
+                                    <div class="bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                        <i class="fa-solid fa-folder"></i>
+                                    </div>
+                                    <div class="text-truncate">
+                                        <div class="text-white fw-medium text-truncate" style="font-size: 0.85rem;">${folder.name}</div>
+                                        <small class="text-muted" style="font-size: 0.75rem;">คลิกเพื่อดูไฟล์รายงาน</small>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-muted small ms-2"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function openCSModal(folderId, folderName) {
+            const modal = new bootstrap.Modal(document.getElementById('csFileModal'));
+            document.getElementById('csModalTitle').innerHTML = `<i class="fa-solid fa-folder-open me-2"></i>${folderName}`;
+            document.getElementById('csModalLoading').style.display = 'block';
+            document.getElementById('csFileList').innerHTML = '';
+            document.getElementById('csNoFiles').classList.add('hidden');
+            modal.show();
+
+            google.script.run
+                .withSuccessHandler(function(files) {
+                    document.getElementById('csModalLoading').style.display = 'none';
+                    const fileListEl = document.getElementById('csFileList');
+                    if (!files || files.length === 0) {
+                        document.getElementById('csNoFiles').classList.remove('hidden');
+                    } else {
+                        let fHtml = '';
+                        files.forEach(file => {
+                            fHtml += `
+                                <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
+                                    <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                        <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
+                                        <span class="text-light text-truncate" style="font-size: 0.9rem;">${file.name}</span>
+                                    </div>
+                                    <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 rounded-pill" style="font-size: 0.8rem;">
+                                        <i class="fa-solid fa-download me-1"></i> เปิดดู / ดาวน์โหลด
+                                    </a>
+                                </div>
+                            `;
+                        });
+                        fileListEl.innerHTML = fHtml;
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    document.getElementById('csModalLoading').style.display = 'none';
+                    document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
+                })
+                .getPDFFilesInFolder(folderId);
+        }
+
+        document.getElementById('csSearchInput').addEventListener('input', function() {
+            renderCSTable(allCSResults);
+        });
+
         window.onload = () => {
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
             loadData();
+            loadCSDataAndFolders();
             window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
         };
-        <!-- ========================================== -->
-<!-- 🧪 โซนแสดงผลเพาะเชื้อระบบน้ำ C/S และโฟลเดอร์รายงาน -->
-<!-- ========================================== -->
-<div class="row g-3 mt-4">
-    <div class="col-12">
-        <div class="card-custom border-success p-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-            
-            <!-- Header -->
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <div>
-                    <h5 class="text-white m-0"><i class="fa-solid fa-microscope text-success me-2"></i>ผลเพาะเชื้อระบบน้ำ (Water Culture C/S Results & Folders)</h5>
-                    <small class="text-muted">ผลการตรวจวิเคราะห์ทางห้องปฏิบัติการและโฟลเดอร์รายงานประจำเดือน</small>
-                </div>
-                <div style="width: 250px;">
-                    <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาจุดตรวจ หรือ เดือน..." class="form-control bg-dark text-white border-secondary form-control-sm rounded-pill px-3" />
-                </div>
-            </div>
-
-            <!-- ส่วนที่ 1: ตารางแสดงผล C/S ล่าสุดจาก Sheet -->
-            <div class="mb-4">
-                <h6 class="text-success fw-bold mb-3"><i class="fa-solid fa-table-list me-2"></i>ประวัติผลเพาะเชื้อ (C/S) ล่าสุดจากระบบ</h6>
-                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                    <table class="table table-bordered table-hover table-dark-custom text-center align-middle mb-0" style="font-size: 0.9rem;">
-                        <thead>
-                            <tr>
-                                <th>วันที่</th>
-                                <th>จุดตรวจ (Location)</th>
-                                <th>ประเภท</th>
-                                <th>ผลการตรวจ (CFU/ml)</th>
-                                <th>ไฟล์ PDF</th>
-                            </tr>
-                        </thead>
-                        <tbody id="csTableBody">
-                            <tr><td colspan="5" class="text-muted">กำลังโหลดข้อมูลผลเพาะเชื้อ...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- ส่วนที่ 2: โฟลเดอร์รายงานผล C/S รายเดือน -->
-            <hr class="border-secondary my-4">
-            <h6 class="text-success fw-bold mb-3"><i class="fa-solid fa-folder-tree me-2"></i>โฟลเดอร์จัดเก็บรายงานผลเพาะเชื้อแยกตามรายเดือน</h6>
-            
-            <div id="csLoader" class="text-center py-3">
-                <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-                <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์...</span>
-            </div>
-            
-            <div id="csFolderGroups" class="row g-3"></div>
-
-        </div>
-    </div>
-</div>
-
-<!-- Modal สำหรับแสดงไฟล์ PDF ภายในโฟลเดอร์ -->
-<div class="modal fade" id="csFileModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
-            <div class="modal-header border-bottom border-secondary bg-success bg-opacity-10">
-                <h5 class="modal-title text-success fw-bold" id="csModalTitle"><i class="fa-solid fa-folder-open me-2"></i>รายการรายงาน</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
-                <div id="csModalLoading" class="text-center py-4">
-                    <div class="spinner-border text-success" role="status"></div>
-                    <p class="text-muted mt-2">กำลังดึงรายการไฟล์...</p>
-                </div>
-                <div id="csFileList" class="list-group list-group-flush bg-transparent"></div>
-                <div id="csNoFiles" class="text-center py-4 text-muted hidden">
-                    <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
-                    <p>ไม่พบไฟล์เอกสารในโฟลเดอร์นี้</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Script สำหรับดึงและเรนเดอร์ข้อมูล C/S และ Folder -->
-<script>
-    let allCSResults = [];
-    const csMonthNamesFull = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
-
-    function loadCSDataAndFolders() {
-        // 1. ดึงตารางผล C/S จากชีต
-        google.script.run
-            .withSuccessHandler(function(results) {
-                allCSResults = results;
-                renderCSTable(results);
-            })
-            .getWaterCultureResults();
-
-        // 2. ดึงโฟลเดอร์รายเดือน
-        document.getElementById('csLoader').style.display = 'block';
-        google.script.run
-            .withSuccessHandler(function(folders) {
-                document.getElementById('csLoader').style.display = 'none';
-                renderCSGroups(folders);
-            })
-            .withFailureHandler(function(err) {
-                document.getElementById('csLoader').style.display = 'none';
-                document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">${err.message}</div>`;
-            })
-            .getMonthlyFolders();
-    }
-
-    function renderCSTable(data) {
-        const tbody = document.getElementById('csTableBody');
-        const keyword = document.getElementById('csSearchInput').value.trim().toLowerCase();
-        
-        let filtered = data;
-        if (keyword) {
-            filtered = data.filter(item => 
-                item.location.toLowerCase().includes(keyword) || 
-                item.date.toLowerCase().includes(keyword) ||
-                item.result.toLowerCase().includes(keyword)
-            );
-        }
-
-        if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-muted py-3">ไม่พบข้อมูลผลเพาะเชื้อ</td></tr>`;
-            return;
-        }
-
-        let html = '';
-        // แสดง 20 รายการล่าสุด
-        filtered.slice(0, 20).forEach(row => {
-            let resColor = (row.result.toUpperCase() === 'NG' || row.result.includes('<')) ? 'text-success fw-bold' : 'text-danger fw-bold';
-            html += `
-                <tr>
-                    <td><small class="text-secondary">${row.date}</small></td>
-                    <td class="text-start text-light">${row.location}</td>
-                    <td><span class="badge bg-secondary">${row.type}</span></td>
-                    <td class="${resColor}">${row.result}</td>
-                    <td>
-                        <a href="${row.fileUrl}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.75rem;">
-                            <i class="fa-solid fa-file-pdf"></i> เปิดดู
-                        </a>
-                    </td>
-                </tr>
-            `;
-        });
-        tbody.innerHTML = html;
-    }
-
-    function extractYM(name) {
-        let m = name.match(/(20\d{2}|25\d{2})[-\/\. ]?(0[1-9]|1[0-2])/);
-        if (m) return {year: m[1], month: m[2]};
-        m = name.match(/(0[1-9]|1[0-2])[-\/\. ]?(20\d{2}|25\d{2})/);
-        if (m) return {year: m[2], month: m[1]};
-        m = name.match(/(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)[ ]?(20\d{2}|25\d{2})/);
-        if (m) {
-            let month = String(csMonthNamesFull.indexOf(m[1])+1).padStart(2,'0');
-            return {year: m[2], month};
-        }
-        return {year:'อื่นๆ', month:'อื่นๆ'};
-    }
-
-    function renderCSGroups(folders) {
-        const container = document.getElementById('csFolderGroups');
-        let groups = {};
-        
-        folders.forEach(f => {
-            let ym = extractYM(f.name);
-            let key = (ym.year !== 'อื่นๆ') ? `${ym.year}-${ym.month}` : 'อื่นๆ';
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(f);
-        });
-
-        let sortedKeys = Object.keys(groups).filter(k => k !== 'อื่นๆ').sort((a,b) => b.localeCompare(a));
-        if (groups['อื่นๆ']) sortedKeys.push('อื่นๆ');
-
-        if (folders.length === 0) {
-            container.innerHTML = `<div class="text-center text-muted py-3">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>`;
-            return;
-        }
-
-        let html = '';
-        sortedKeys.forEach(key => {
-            let groupFolders = groups[key];
-            let groupTitle = 'อื่นๆ';
-            if (key !== 'อื่นๆ') {
-                let [year, month] = key.split('-');
-                let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
-                let yLabel = year.startsWith('25') ? `พ.ศ. ${year}` : year;
-                groupTitle = `${mName} ${yLabel}`;
-            }
-
-            html += `
-                <div class="col-12">
-                    <div class="text-success fw-bold mb-2 mt-2" style="font-size: 0.9rem;">
-                        <i class="fa-solid fa-calendar-days me-1"></i> ${groupTitle}
-                    </div>
-                    <div class="row g-2">
-            `;
-
-            groupFolders.forEach(folder => {
-                html += `
-                    <div class="col-md-4 col-sm-6">
-                        <div class="p-3 rounded-3 border border-secondary bg-dark bg-opacity-50 h-100 d-flex align-items-center justify-content-between shadow-sm" 
-                             style="cursor: pointer; transition: all 0.2s;" 
-                             onmouseover="this.style.borderColor='#198754'; this.style.transform='translateY(-2px)';" 
-                             onmouseout="this.style.borderColor='#6c757d'; this.style.transform='translateY(0)';"
-                             onclick="openCSModal('${folder.id}', '${folder.name}')">
-                            <div class="d-flex align-items-center gap-3 overflow-hidden">
-                                <div class="bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
-                                    <i class="fa-solid fa-folder"></i>
-                                </div>
-                                <div class="text-truncate">
-                                    <div class="text-white fw-medium text-truncate" style="font-size: 0.85rem;">${folder.name}</div>
-                                    <small class="text-muted" style="font-size: 0.75rem;">คลิกเพื่อดูไฟล์รายงาน</small>
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-muted small ms-2"></i>
-                        </div>
-                    </div>
-                `;
-            });
-            html += `</div></div>`;
-        });
-        container.innerHTML = html;
-    }
-
-    function openCSModal(folderId, folderName) {
-        const modal = new bootstrap.Modal(document.getElementById('csFileModal'));
-        document.getElementById('csModalTitle').innerHTML = `<i class="fa-solid fa-folder-open me-2"></i>${folderName}`;
-        document.getElementById('csModalLoading').style.display = 'block';
-        document.getElementById('csFileList').innerHTML = '';
-        document.getElementById('csNoFiles').classList.add('hidden');
-        modal.show();
-
-        google.script.run
-            .withSuccessHandler(function(files) {
-                document.getElementById('csModalLoading').style.display = 'none';
-                const fileListEl = document.getElementById('csFileList');
-                if (!files || files.length === 0) {
-                    document.getElementById('csNoFiles').classList.remove('hidden');
-                } else {
-                    let fHtml = '';
-                    files.forEach(file => {
-                        fHtml += `
-                            <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
-                                <div class="d-flex align-items-center gap-2 text-truncate me-2">
-                                    <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
-                                    <span class="text-light text-truncate" style="font-size: 0.9rem;">${file.name}</span>
-                                </div>
-                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 rounded-pill" style="font-size: 0.8rem;">
-                                    <i class="fa-solid fa-download me-1"></i> เปิดดู / ดาวน์โหลด
-                                </a>
-                            </div>
-                        `;
-                    });
-                    fileListEl.innerHTML = fHtml;
-                }
-            })
-            .withFailureHandler(function(err) {
-                document.getElementById('csModalLoading').style.display = 'none';
-                document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
-            })
-            .getPDFFilesInFolder(folderId);
-    }
-
-    // ช่องค้นหาเชื่อมกับตารางผล C/S
-    document.getElementById('csSearchInput').addEventListener('input', function() {
-        renderCSTable(allCSResults);
-    });
-
-    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
-    loadCSDataAndFolders();
     </script>
 </body>
 </html>
