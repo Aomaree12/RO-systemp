@@ -22,37 +22,23 @@
         .thermo-fluid { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, #3b82f6, #ef4444); border-radius: 10px; transition: height 1s; }
         .thermo-bulb { width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb); border-radius: 50%; position: absolute; bottom: -20px; left: -7px; border: 2px solid #475569; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5); }
         
-        /* 3D Rotameter (แท่งแก้ว Flow) */
+        /* 3D Rotameter */
         .rotameter-wrapper { display: flex; align-items: center; justify-content: center; position: relative; }
         .rotameter-scale { display: flex; flex-direction: column; justify-content: space-between; height: 200px; font-size: 0.75rem; color: #94a3b8; text-align: right; padding-right: 4px; font-weight: bold; }
         .rotameter { 
             width: 45px; height: 200px; 
-            /* ไล่สีพื้นหลังให้ดูเป็นแก้วทรงกระบอก 3 มิติ */
             background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.05) 100%);
             border: 2px solid #475569; border-radius: 20px; position: relative; display: flex; justify-content: center;
             box-shadow: inset 0px 0px 15px rgba(0,0,0,0.9), 3px 3px 10px rgba(0,0,0,0.5);
         }
-        /* แสงสะท้อนบนผิวกระจก */
-        .rotameter::after {
-            content: ''; position: absolute; top: 2%; left: 15%; width: 15%; height: 96%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
-            border-radius: 20px; pointer-events: none;
-        }
+        .rotameter::after { content: ''; position: absolute; top: 2%; left: 15%; width: 15%; height: 96%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); border-radius: 20px; pointer-events: none; }
         .rotameter::before { content: ''; position: absolute; left: 10px; height: 100%; width: 5px; border-left: 1px dashed #64748b; }
-        
-        /* ลูกลอย 3D */
-        .float-bob { 
-            width: 26px; height: 26px; border-radius: 50%; position: absolute; z-index: 2;
-            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.6); 
-            transition: bottom 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-        }
+        .float-bob { width: 26px; height: 26px; border-radius: 50%; position: absolute; z-index: 2; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.6); transition: bottom 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
         .gauge-chart { width: 100%; height: 200px; }
         .col-label { font-size: 0.8rem; color: #94a3b8; margin-top: -10px; text-align: center; display: block; line-height: 1.2;}
         .table-dark-custom { background-color: #0f172a; color: #cbd5e1; border-color: #334155; }
         .table-dark-custom th { background-color: #1e293b; color: #38bdf8; position: sticky; top: 0; z-index: 10;}
-        
-        /* Loading Overlay */
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
@@ -61,7 +47,7 @@
     <!-- Loading Screen -->
     <div id="loadingOverlay">
         <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h4 class="mt-3 text-info">กำลังโหลดข้อมูลจากระบบ...</h4>
+        <h4 class="mt-3 text-info">กำลังโหลดและจัดเรียงข้อมูล...</h4>
     </div>
 
     <!-- Header & Filter -->
@@ -75,11 +61,10 @@
                 <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
                     <div class="input-group">
                         <span class="input-group-text bg-dark text-info border-secondary"><i class="fas fa-calendar-alt"></i> &nbsp;เลือกวันที่</span>
-                        <!-- ระบบจะเติม Option วันที่ให้เองจากฐานข้อมูล -->
                         <select id="dateFilter" class="form-select bg-dark text-white border-secondary" onchange="applyFilter()"></select>
                     </div>
                     <div class="text-lg-end min-w-150">
-                        <span class="badge bg-success mb-1"><i class="fas fa-check-circle"></i> ระบบทำงานปกติ</span><br>
+                        <span class="badge bg-success mb-1"><i class="fas fa-check-circle"></i> ข้อมูลอัปเดต</span><br>
                         <small class="text-muted">ผู้ตรวจสอบ: <span id="valOperator" class="text-info fw-bold">-</span></small>
                     </div>
                 </div>
@@ -90,7 +75,7 @@
     <!-- โซนที่ 1: คุณภาพน้ำ (Water Quality) -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">ORP น้ำเข้า</small><div class="digital-sm text-warning mt-1"><span id="valOrp">0</span> <span class="fs-6">mV</span></div></div></div>
-        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">Chlorine น้ำดิบ {0.3-0.5}</small><div class="digital-sm text-warning mt-1"><span id="valCl">0.0</span> <span class="fs-6">ppm</span></div></div></div>
+        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">Chlorine น้ำดิบ {0.3-0.5}</small><div class="digital-sm text-warning mt-1"><span id="valCl">-</span> <span class="fs-6">ppm</span></div></div></div>
         <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">RAW Cond {< 500}</small><div class="digital-sm text-warning mt-1"><span id="valCondRaw">0</span> <span class="fs-6">µS</span></div></div></div>
         <div class="col-6 col-md-3 col-lg-3"><div class="card-custom text-center border-info h-100"><small class="text-info fw-bold">Conductivity RO {< 10}</small><div class="digital-value mt-1"><span id="valCondRo">0.00</span> <span class="fs-5">µS/cm</span></div></div></div>
         <div class="col-12 col-lg-3">
@@ -177,12 +162,12 @@
                 <h6 class="text-secondary mb-3"><i class="fas fa-clipboard-check me-2"></i>การทำงาน & สารเคมี</h6>
                 <table class="table table-dark table-sm table-borderless align-middle m-0" style="font-size: 0.9rem;">
                     <tbody>
-                        <tr><td class="text-secondary">Sand Clock</td><td class="text-end"><span id="valSandClk" class="badge bg-success">Yes</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 1 Clock</td><td class="text-end"><span id="valC1Clk" class="badge bg-success">Yes</span></td></tr>
+                        <tr><td class="text-secondary">Sand Clock</td><td class="text-end"><span id="valSandClk" class="badge bg-success">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 1 Clock</td><td class="text-end"><span id="valC1Clk" class="badge bg-success">-</span></td></tr>
                         <tr><td class="text-secondary">Carbon 1 Chlorine test {<0.1}</td><td class="text-end"><span id="valC1Cl" class="text-white">-</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 2 Clock</td><td class="text-end"><span id="valC2Clk" class="badge bg-success">Yes</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 2 Clock</td><td class="text-end"><span id="valC2Clk" class="badge bg-success">-</span></td></tr>
                         <tr><td class="text-secondary">Carbon 2 Chlorine test {<0.1}</td><td class="text-end"><span id="valC2Cl" class="text-white">-</span></td></tr>
-                        <tr><td class="text-secondary">Softener Clock</td><td class="text-end"><span id="valSoftClk" class="badge bg-success">Yes</span></td></tr>
+                        <tr><td class="text-secondary">Softener Clock</td><td class="text-end"><span id="valSoftClk" class="badge bg-success">-</span></td></tr>
                         <tr><td class="text-secondary">Softener Brine Tank (12.5 kg)</td><td class="text-end text-info fw-bold" id="valBrine">-</td></tr>
                         <tr><td class="text-secondary">Softener Aquadur test {<17.1}</td><td class="text-end"><span id="valAqua" class="text-white">-</span></td></tr>
                     </tbody>
@@ -191,7 +176,7 @@
         </div>
         <div class="col-lg-8">
             <div class="card-custom h-100 d-flex flex-column">
-                <h6 class="text-secondary mb-3"><i class="fas fa-chart-line me-2"></i>กราฟแนวโน้ม Conductivity RO ประจำเดือน</h6>
+                <h6 class="text-secondary mb-3"><i class="fas fa-chart-line me-2"></i>กราฟแนวโน้ม Conductivity RO (ตลอดทั้งเดือน)</h6>
                 <div id="monthlyChart" class="flex-grow-1" style="min-height: 250px;"></div>
             </div>
         </div>
@@ -201,8 +186,8 @@
     <div class="row g-3">
         <div class="col-12">
             <div class="card-custom">
-                <h6 class="text-secondary mb-3"><i class="fas fa-table me-2"></i>ประวัติตรวจเช็คระบบน้ำ RO (เดือนปัจจุบัน)</h6>
-                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                <h6 class="text-secondary mb-3"><i class="fas fa-table me-2"></i>ประวัติตรวจเช็คระบบน้ำ RO (ตลอดทั้งเดือน)</h6>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-bordered table-hover table-dark-custom text-center align-middle mb-0">
                         <thead>
                             <tr>
@@ -215,7 +200,7 @@
                             </tr>
                         </thead>
                         <tbody id="historyTableBody">
-                            <!-- JS จะดึงข้อมูลมาแสดงตรงนี้ -->
+                            <!-- JS จะดึงข้อมูลเดือนนั้นทั้งเดือนมาแสดงตรงนี้ -->
                         </tbody>
                     </table>
                 </div>
@@ -232,10 +217,7 @@
         let monthlyChart;
 
         function createGauge(elementId, maxVal, isRO) {
-            let colorStops = isRO 
-                ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] 
-                : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']];
-
+            let colorStops = isRO ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']];
             let chart = echarts.init(document.getElementById(elementId));
             chart.setOption({
                 series: [{
@@ -254,107 +236,166 @@
             gauges[elementId] = chart;
         }
 
-        // โหลดข้อมูลจาก Google Sheet
+        // ฟังก์ชันช่วยดึงค่าตัวเลข (ป้องกัน error เป็น 0)
+        function extractNum(val) {
+            if(val === null || val === undefined || val === '') return 0;
+            let n = parseFloat(val);
+            return isNaN(n) ? 0 : n;
+        }
+
+        // ดึงข้อมูลจาก API + ระบบค้นหาคีย์เวิร์ด (แก้ปัญหาคอลัมน์ชื่อไม่ตรงกัน)
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
-                if(!response.ok) throw new Error("Network Error");
                 const data = await response.json();
                 
-                // คัดเฉพาะแถวที่มีข้อมูล timestamp 
-                globalData = data.filter(d => d.timestamp);
+                // แปลงข้อมูลทุกแถวอย่างละเอียด
+                globalData = data.map(row => {
+                    let mapped = {};
+                    for (let k in row) {
+                        let lk = k.toLowerCase().replace(/\s+/g, ' '); // ทำตัวเล็ก ตัดสเปซ
+                        let val = row[k];
+                        
+                        if(lk.includes('ประทับเวลา') || lk.includes('timestamp')) mapped.timestamp_raw = val;
+                        else if(lk === 'orp') mapped.orp = extractNum(val);
+                        else if(lk.includes('chlorine ในน้ำดิบ')) mapped.cl_raw = val;
+                        else if(lk.includes('feed pump')) mapped.press_feed = extractNum(val);
+                        else if(lk.includes('sand pressure')) mapped.press_sand = extractNum(val);
+                        else if(lk.includes('sand clock')) mapped.clk_sand = val;
+                        else if(lk.includes('softener pressure')) mapped.press_soft = extractNum(val);
+                        else if(lk.includes('softener clock')) mapped.clk_soft = val;
+                        else if(lk.includes('brine')) mapped.brine = extractNum(val);
+                        else if(lk.includes('aquadur')) mapped.aqua = val;
+                        else if(lk.includes('carbon 1 pressure')) mapped.press_c1 = extractNum(val);
+                        else if(lk.includes('carbon 1 clock')) mapped.clk_c1 = val;
+                        else if(lk.includes('carbon 1 chlorine')) mapped.cl_c1 = val;
+                        else if(lk.includes('carbon 2 pressure')) mapped.press_c2 = extractNum(val);
+                        else if(lk.includes('carbon 2 clock')) mapped.clk_c2 = val;
+                        else if(lk.includes('carbon 2 chlorine')) mapped.cl_c2 = val;
+                        else if(lk.includes('cartridge filter')) mapped.press_cart = extractNum(val);
+                        else if(lk.includes('raw cond')) mapped.cond_raw = extractNum(val);
+                        else if(lk.includes('temp')) mapped.temp = extractNum(val);
+                        else if(lk.includes('ro pressure') || lk.includes('pump')) mapped.press_ro_pump = extractNum(val);
+                        else if(lk.includes('concentrate pressure')) mapped.press_conc = extractNum(val);
+                        else if(lk.includes('permeate pressure')) mapped.press_perm = extractNum(val);
+                        else if(lk.includes('permeate flow')) mapped.flow_perm = extractNum(val);
+                        else if(lk.includes('concentrate flow')) mapped.flow_conc = extractNum(val);
+                        else if(lk.includes('cond') && lk.includes('ro')) mapped.cond_ro = extractNum(val);
+                        else if(lk.includes('rejection')) mapped.rej = extractNum(val);
+                        else if(lk.includes('recovery')) mapped.rec = extractNum(val);
+                        else if(lk.includes('ชื่อ-สกุล') || lk.includes('name')) mapped.operator = val;
+                    }
+
+                    // จัดการวันที่ให้อยู่ใน Format ที่ถูกต้องเพื่อใช้เป็น Filter
+                    let d = new Date(mapped.timestamp_raw);
+                    if(!isNaN(d)) {
+                        mapped.dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0') + "-" + String(d.getDate()).padStart(2,'0');
+                        mapped.monthStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,'0');
+                        mapped.dayNum = d.getDate();
+                        // เก็บข้อความวันที่แบบอ่านง่ายสำหรับตาราง
+                        mapped.timeDisplay = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    } else {
+                        mapped.dateStr = ""; mapped.monthStr = "";
+                    }
+                    return mapped;
+                });
+                
+                // กรองเอาเฉพาะข้อมูลที่มีวันที่
+                globalData = globalData.filter(d => d.dateStr !== "");
                 
                 if (globalData.length > 0) {
-                    populateDateDropdown(globalData);
-                    // เลือกวันล่าสุดโดยอัตโนมัติ
-                    let latestDate = extractDate(globalData[globalData.length - 1].timestamp);
-                    document.getElementById('dateFilter').value = latestDate;
+                    populateDateDropdown();
                     applyFilter(); 
                 }
             } catch (e) {
                 console.error(e);
-                alert("ไม่สามารถดึงข้อมูลจาก Google Sheet ได้ โปรดรีเฟรชหน้าจอ");
+                alert("พบปัญหาในการดึงข้อมูล โปรดรีเฟรชหน้าจอ");
             } finally {
                 document.getElementById('loadingOverlay').style.display = 'none';
             }
         }
 
-        // สกัดแค่วันที่ (YYYY-MM-DD) จาก Timestamp เพื่อใช้เป็น Filter
-        function extractDate(timestamp) {
-            if(!timestamp) return "";
-            return String(timestamp).split(" ")[0] || timestamp;
-        }
-
-        // สร้าง Dropdown 
-        function populateDateDropdown(data) {
+        // นำวันที่ทั้งหมดมาสร้างตัวเลือก Dropdown
+        function populateDateDropdown() {
             const select = document.getElementById('dateFilter');
             select.innerHTML = "";
-            let uniqueDates = [...new Set(data.map(d => extractDate(d.timestamp)))];
+            let uniqueDates = [...new Set(globalData.map(d => d.dateStr))];
             
-            // เรียงวันที่จากใหม่ไปเก่า
+            // เรียงวันที่จากใหม่สุดไปเก่าสุด
             uniqueDates.sort((a,b) => new Date(b) - new Date(a));
             
             uniqueDates.forEach(date => {
+                let parts = date.split('-');
+                let display = `${parts[2]}/${parts[1]}/${parts[0]}`; // แบบไทย วว/ดด/ปปปป
                 let opt = document.createElement('option');
                 opt.value = date;
-                // จัด format แสดงผล (สมมติว่าเป็น ปี-เดือน-วัน)
-                opt.text = date;
+                opt.text = display;
                 select.appendChild(opt);
             });
+            // เลือกวันล่าสุด
+            if(uniqueDates.length > 0) select.value = uniqueDates[0];
         }
 
         function applyFilter() {
             let selectedDate = document.getElementById('dateFilter').value;
             
-            // หา Data ล่าสุดในวันที่เลือก
-            let targetDataList = globalData.filter(d => extractDate(d.timestamp) === selectedDate);
-            let targetData = targetDataList[targetDataList.length - 1]; // เอาบันทึกล่าสุดของวันนั้น
-            
-            if(targetData) {
-                updateDashboard(targetData);
+            // 1. ดึงข้อมูล 1 แถวล่าสุดของวันที่เลือก เพื่อไปโชว์ที่เกจวัดและแท่งแก้ว
+            let targetDataList = globalData.filter(d => d.dateStr === selectedDate);
+            if(targetDataList.length > 0) {
+                updateDashboard(targetDataList[targetDataList.length - 1]);
             }
 
-            // หาเดือนปัจจุบันจากที่เลือก (เช่น 2026-09)
-            let selectedMonth = selectedDate.substring(0, 7);
+            // 2. ดึงข้อมูลของ "เดือนนั้นทั้งเดือน" มาจุดลงกราฟและตาราง (ตั้งแต่วันที่ 1 ถึงสิ้นเดือน)
+            let selectedMonth = selectedDate.substring(0, 7); // เอาแค่ YYYY-MM
+            let monthData = globalData.filter(d => d.monthStr === selectedMonth);
             
-            // กรองข้อมูลเฉพาะเดือนนั้นเพื่อพลอตกราฟและสร้างตาราง
-            let monthData = globalData.filter(d => extractDate(d.timestamp).startsWith(selectedMonth));
             renderChart(monthData);
             updateHistoryTable(monthData);
         }
 
         function updateDashboard(data) {
-            // Text Values (รองรับทั้ง key แบบเก่าและใหม่ เพื่อป้องกัน error)
             document.getElementById('valOperator').innerText = data.operator || "-";
             document.getElementById('valOrp').innerText = data.orp || 0;
+            document.getElementById('valCl').innerText = data.cl_raw || "-";
             document.getElementById('valCondRaw').innerText = data.cond_raw || 0;
             document.getElementById('valCondRo').innerText = data.cond_ro || 0;
             document.getElementById('valTemp').innerText = data.temp || 0;
             
-            // สมมติว่ามี key อื่นๆ ส่งมาจาก GS หรือถ้าไม่มีให้เป็น 0
-            document.getElementById('valPermFlow').innerText = data.flow_permeate || data.flow_perm || 0;
-            document.getElementById('valConcFlow').innerText = data.flow_reject || data.flow_conc || 0;
-            
-            // หากไม่มีส่งมาให้คำนวณคร่าวๆ หรือโชว์เป็น -
-            document.getElementById('valCl').innerText = data.cl_raw || "-";
-            document.getElementById('valRej').innerText = data.rej || "98.00"; // ใส่ค่า mock หาก GS ไม่ส่ง
-            document.getElementById('valRec').innerText = data.rec || "50.00"; 
+            document.getElementById('valPermFlow').innerText = data.flow_perm || 0;
+            document.getElementById('valConcFlow').innerText = data.flow_conc || 0;
+            document.getElementById('valRej').innerText = data.rej || "0.00"; 
+            document.getElementById('valRec').innerText = data.rec || "0.00"; 
 
-            // อัปเดตแท่งแก้ว
-            let perm = data.flow_permeate || data.flow_perm || 0;
-            let conc = data.flow_reject || data.flow_conc || 0;
+            // อัปเดตแท่งแก้ว 3D
+            let perm = data.flow_perm || 0;
+            let conc = data.flow_conc || 0;
             let temp = data.temp || 0;
-            
             document.getElementById('bobPermeate').style.bottom = (perm / 40 * 100) + "%";
             document.getElementById('bobReject').style.bottom = (conc / 40 * 100) + "%";
             document.getElementById('thermoFluid').style.height = (temp / 40 * 100) + "%";
 
-            // อัปเดตเกจวัด (ใช้ Fallback = 0 ถ้าคอลัมน์ไม่ถูกส่งมา)
+            // อัปเดตสถานะ (Badge)
+            const setBadge = (id, val) => {
+                let el = document.getElementById(id);
+                if(val === "Yes") { el.className = "badge bg-success"; el.innerText = "Yes"; }
+                else if(val === "-") { el.className = "text-secondary"; el.innerText = "-"; }
+                else { el.className = "badge bg-warning text-dark"; el.innerText = val || "-"; }
+            };
+            setBadge('valSandClk', data.clk_sand);
+            setBadge('valC1Clk', data.clk_c1);
+            setBadge('valC1Cl', data.cl_c1);
+            setBadge('valC2Clk', data.clk_c2);
+            setBadge('valC2Cl', data.cl_c2);
+            setBadge('valSoftClk', data.clk_soft);
+            setBadge('valAqua', data.aqua);
+            document.getElementById('valBrine').innerText = data.brine || "-";
+
+            // อัปเดตเกจวัดทั้งหมด
             gauges['gFeed'].setOption({ series: [{ data: [{ value: data.press_feed || 0 }] }] });
             gauges['gSand'].setOption({ series: [{ data: [{ value: data.press_sand || 0 }] }] });
-            gauges['gC1'].setOption({ series: [{ data: [{ value: data.press_carbon || data.press_c1 || 0 }] }] });
+            gauges['gC1'].setOption({ series: [{ data: [{ value: data.press_c1 || 0 }] }] });
             gauges['gC2'].setOption({ series: [{ data: [{ value: data.press_c2 || 0 }] }] });
-            gauges['gSoft'].setOption({ series: [{ data: [{ value: data.press_softener || data.press_soft || 0 }] }] });
+            gauges['gSoft'].setOption({ series: [{ data: [{ value: data.press_soft || 0 }] }] });
             gauges['gCart'].setOption({ series: [{ data: [{ value: data.press_cart || 0 }] }] });
             
             gauges['gRoPump'].setOption({ series: [{ data: [{ value: data.press_ro_pump || 0 }] }] });
@@ -362,22 +403,23 @@
             gauges['gPermPress'].setOption({ series: [{ data: [{ value: data.press_perm || 0 }] }] });
         }
 
+        // ฟังก์ชันวาดกราฟทั้งเดือน (ตัดแกน X เป็น 1, 2, 3)
         function renderChart(monthData) {
             if(!monthlyChart) monthlyChart = echarts.init(document.getElementById('monthlyChart'));
             
-            // ใช้ข้อมูล 1 แถวต่อวัน (เอาอันล่าสุดของวัน)
+            // จัดกลุ่มตามวัน (ถ้าวันไหนมีหลายรายการ ให้เอาอันล่าสุด)
             let dailyMap = {};
-            monthData.forEach(d => {
-                let dateKey = extractDate(d.timestamp);
-                dailyMap[dateKey] = d;
-            });
+            monthData.forEach(d => { dailyMap[d.dateStr] = d; });
             
+            // เรียงวันจากวันที่ 1 ถึง 31
             let sortedDates = Object.keys(dailyMap).sort((a,b) => new Date(a) - new Date(b));
-            let datesLabels = sortedDates.map(d => { let p = d.split('-'); return p.length > 2 ? `${p[2]}/${p[1]}` : d; });
+            
+            // สร้างแกน X เป็นตัวเลข (1, 2, 3...)
+            let datesLabels = sortedDates.map(d => dailyMap[d].dayNum);
             let condData = sortedDates.map(d => dailyMap[d].cond_ro || 0);
 
             monthlyChart.setOption({
-                tooltip: { trigger: 'axis' },
+                tooltip: { trigger: 'axis', formatter: '{b} ก.ย. : {c} µS/cm' },
                 grid: { left: '3%', right: '4%', bottom: '5%', top: '10%', containLabel: true },
                 xAxis: { type: 'category', boundaryGap: false, data: datesLabels, axisLabel: { color: '#94a3b8' } },
                 yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#334155' } } },
@@ -389,26 +431,24 @@
             });
         }
 
+        // ฟังก์ชันสร้างตาราง (ข้อมูลทั้งเดือน)
         function updateHistoryTable(monthData) {
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = "";
             
-            // เรียงจากใหม่ไปเก่า
-            let sorted = [...monthData].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            // เรียงลำดับจากใหม่ล่าสุดไปเก่าสุด
+            let sorted = [...monthData].sort((a,b) => new Date(b.timestamp_raw) - new Date(a.timestamp_raw));
             
             sorted.forEach(row => {
                 let tr = document.createElement('tr');
                 let condClass = (row.cond_ro && row.cond_ro < 10) ? 'text-success' : 'text-danger';
-                let perm = row.flow_permeate || row.flow_perm || 0;
-                let conc = row.flow_reject || row.flow_conc || 0;
-                let rej = row.rej || "-";
                 
                 tr.innerHTML = `
-                    <td><small class="text-secondary">${row.timestamp || '-'}</small></td>
+                    <td><small class="text-secondary">${row.timeDisplay || '-'}</small></td>
                     <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
-                    <td class="text-info">${rej}</td>
+                    <td class="text-info">${row.rej || "-"}</td>
                     <td>${row.temp || 0}</td>
-                    <td><span class="text-info">${perm}</span> / <span class="text-warning">${conc}</span></td>
+                    <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
                     <td>${row.operator || '-'}</td>
                 `;
                 tbody.appendChild(tr);
@@ -416,11 +456,10 @@
         }
 
         window.onload = () => {
-            // สร้างเกจเปล่ารอข้อมูล
+            // สร้างหน้าปัดเกจเปล่ารอข้อมูล
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
             
-            // เริ่มดึงข้อมูล
             loadData();
 
             window.addEventListener('resize', () => {
