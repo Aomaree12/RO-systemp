@@ -236,47 +236,23 @@
         </div>
     </div>
 
-    <!-- โซนที่ 6: ผลเพาะเชื้อระบบน้ำ C/S และโฟลเดอร์รายงาน -->
+    <!-- โซนที่ 6: โฟลเดอร์ผลเพาะเชื้อ C/S (ดึงจากฟังก์ชันเดิม getMonthlyFolders ใน GS ทันที) -->
     <div class="row g-3">
         <div class="col-12">
             <div class="card-custom border-success p-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <div>
-                        <h5 class="text-white m-0"><i class="fa-solid fa-microscope text-success me-2"></i>ผลเพาะเชื้อระบบน้ำ (Water Culture C/S Results & Folders)</h5>
-                        <small class="text-muted">ผลการตรวจวิเคราะห์ทางห้องปฏิบัติการและโฟลเดอร์รายงานประจำเดือน</small>
+                        <h5 class="text-white m-0"><i class="fa-solid fa-folder-tree text-success me-2"></i>โฟลเดอร์ผลเพาะเชื้อระบบน้ำ C/S (Water Culture Folders)</h5>
+                        <small class="text-muted">ดึงข้อมูลโฟลเดอร์รายงานประจำเดือนจากระบบอัตโนมัติ</small>
                     </div>
                     <div style="width: 250px;">
-                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาจุดตรวจ หรือ เดือน..." class="form-control bg-dark text-white border-secondary form-control-sm rounded-pill px-3" />
+                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาโฟลเดอร์เดือน/ปี..." class="form-control bg-dark text-white border-secondary form-control-sm rounded-pill px-3" />
                     </div>
                 </div>
 
-                <!-- ตาราง C/S ล่าสุด -->
-                <div class="mb-4">
-                    <h6 class="text-success fw-bold mb-3"><i class="fa-solid fa-table-list me-2"></i>ประวัติผลเพาะเชื้อ (C/S) ล่าสุดจากระบบ</h6>
-                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                        <table class="table table-bordered table-hover table-dark-custom text-center align-middle mb-0" style="font-size: 0.9rem;">
-                            <thead>
-                                <tr>
-                                    <th>วันที่</th>
-                                    <th>จุดตรวจ (Location)</th>
-                                    <th>ประเภท</th>
-                                    <th>ผลการตรวจ (CFU/ml)</th>
-                                    <th>ไฟล์ PDF</th>
-                                </tr>
-                            </thead>
-                            <tbody id="csTableBody">
-                                <tr><td colspan="5" class="text-muted">กำลังโหลดข้อมูลผลเพาะเชื้อ...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <hr class="border-secondary my-4">
-                <h6 class="text-success fw-bold mb-3"><i class="fa-solid fa-folder-tree me-2"></i>โฟลเดอร์จัดเก็บรายงานผลเพาะเชื้อแยกตามรายเดือน</h6>
-                
                 <div id="csLoader" class="text-center py-3">
                     <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์...</span>
+                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์ผล C/S...</span>
                 </div>
                 
                 <div id="csFolderGroups" class="row g-3"></div>
@@ -284,7 +260,7 @@
         </div>
     </div>
 
-    <!-- Modal สำหรับแสดงไฟล์ PDF ภายในโฟลเดอร์ C/S -->
+    <!-- Modal สำหรับแสดงไฟล์ PDF ภายในโฟลเดอร์ -->
     <div class="modal fade" id="csFileModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
@@ -307,7 +283,7 @@
         </div>
     </div>
 
-    <!-- Script สำหรับทำงานทั้งหมด (โหลดไว ไม่บล็อกหน้าจอ) -->
+    <!-- Script รวมการทำงานทั้งหมด -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         
@@ -316,7 +292,7 @@
         let availableDates = [];
         let gauges = {};
         let monthlyChart;
-        let allCSResults = [];
+        let allCSFolders = [];
         const csMonthNamesFull = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
         function createGauge(elementId, maxVal, isRO) {
@@ -566,62 +542,21 @@
         }
 
         // ==========================================
-        // โหลดผล C/S และ โฟลเดอร์แบบไม่บล็อกหน้าจอ (Lazy Load)
+        // เรียกใช้ฟังก์ชัน getMonthlyFolders() และ getPDFFilesInFolder() จากไฟล์ GS เดิมของคุณโดยตรง
         // ==========================================
-        function loadCSDataAndFolders() {
-            google.script.run
-                .withSuccessHandler(function(results) {
-                    allCSResults = results;
-                    renderCSTable(results);
-                })
-                .getWaterCultureResults();
-
+        function loadCSFolders() {
             document.getElementById('csLoader').style.display = 'block';
             google.script.run
                 .withSuccessHandler(function(folders) {
                     document.getElementById('csLoader').style.display = 'none';
+                    allCSFolders = folders;
                     renderCSGroups(folders);
                 })
                 .withFailureHandler(function(err) {
                     document.getElementById('csLoader').style.display = 'none';
-                    document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">${err.message}</div>`;
+                    document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
                 })
                 .getMonthlyFolders();
-        }
-
-        function renderCSTable(data) {
-            const tbody = document.getElementById('csTableBody');
-            const keyword = document.getElementById('csSearchInput').value.trim().toLowerCase();
-            let filtered = data;
-            if (keyword) {
-                filtered = data.filter(item => 
-                    item.location.toLowerCase().includes(keyword) || 
-                    item.date.toLowerCase().includes(keyword) ||
-                    item.result.toLowerCase().includes(keyword)
-                );
-            }
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-muted py-3">ไม่พบข้อมูลผลเพาะเชื้อ</td></tr>`;
-                return;
-            }
-            let html = '';
-            filtered.slice(0, 20).forEach(row => {
-                let resColor = (row.result.toUpperCase() === 'NG' || row.result.includes('<')) ? 'text-success fw-bold' : 'text-danger fw-bold';
-                html += `
-                    <tr>
-                        <td><small class="text-secondary">${row.date}</small></td>
-                        <td class="text-start text-light">${row.location}</td>
-                        <td><span class="badge bg-secondary">${row.type}</span></td>
-                        <td class="${resColor}">${row.result}</td>
-                        <td>
-                            <a href="${row.fileUrl}" target="_blank" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.75rem;">
-                                <i class="fa-solid fa-file-pdf"></i> เปิดดู
-                            </a>
-                        </td>
-                    </tr>
-                `;
-            });
-            tbody.innerHTML = html;
         }
 
         function extractYM(name) {
@@ -639,8 +574,15 @@
 
         function renderCSGroups(folders) {
             const container = document.getElementById('csFolderGroups');
+            const keyword = document.getElementById('csSearchInput').value.trim().toLowerCase();
+            
+            let filtered = folders;
+            if (keyword) {
+                filtered = folders.filter(f => f.name.toLowerCase().includes(keyword));
+            }
+
             let groups = {};
-            folders.forEach(f => {
+            filtered.forEach(f => {
                 let ym = extractYM(f.name);
                 let key = (ym.year !== 'อื่นๆ') ? `${ym.year}-${ym.month}` : 'อื่นๆ';
                 if (!groups[key]) groups[key] = [];
@@ -649,7 +591,7 @@
             let sortedKeys = Object.keys(groups).filter(k => k !== 'อื่นๆ').sort((a,b) => b.localeCompare(a));
             if (groups['อื่นๆ']) sortedKeys.push('อื่นๆ');
 
-            if (folders.length === 0) {
+            if (filtered.length === 0) {
                 container.innerHTML = `<div class="text-center text-muted py-3">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>`;
                 return;
             }
@@ -706,6 +648,7 @@
             document.getElementById('csNoFiles').classList.add('hidden');
             modal.show();
 
+            // เรียกใช้ฟังก์ชัน getPDFFilesInFolder จาก GS เดิมของคุณ
             google.script.run
                 .withSuccessHandler(function(files) {
                     document.getElementById('csModalLoading').style.display = 'none';
@@ -738,18 +681,18 @@
         }
 
         document.getElementById('csSearchInput').addEventListener('input', function() {
-            renderCSTable(allCSResults);
+            renderCSGroups(allCSFolders);
         });
 
         window.onload = () => {
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
             
-            // 1. โหลดข้อมูลหลัก (RO Dashboard) ทันที
+            // 1. โหลดข้อมูลแดชบอร์ด RO หลัก
             loadData();
             
-            // 2. โหลดข้อมูล C/S และโฟลเดอร์แบบเบื้องหลัง (ไม่บล็อกหน้าจอ)
-            setTimeout(() => { loadCSDataAndFolders(); }, 500);
+            // 2. โหลดโฟลเดอร์ผล C/S จากฟังก์ชันเดิมใน GS แบบเบื้องหลัง
+            setTimeout(() => { loadCSFolders(); }, 500);
 
             window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
         };
