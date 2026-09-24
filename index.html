@@ -17,8 +17,6 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
     <!-- Marked.js สำหรับแปลง Markdown เป็น HTML -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- SweetAlert2 สำหรับแจ้งเตือนสวยๆ -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
@@ -214,7 +212,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 5: ตารางย้อนหลัง RO (ปุ่มจัดการ: ดู, แก้ไข, ลบ) -->
+    <!-- โซนที่ 5: ตารางย้อนหลัง RO (มีปุ่มจัดการ: ดู, แก้ไข, ลบ พร้อมรหัส 1234) -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
@@ -228,7 +226,7 @@
                                 <th>% Rejection</th>
                                 <th>% Recovery {45-55%}</th>
                                 <th>Flow (Perm/Conc)</th>
-                                <th>จัดการ</th>
+                                <th>จัดการ (View / Edit / Delete)</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody"></tbody>
@@ -298,13 +296,15 @@
                 </div>
                 <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
                     <form id="roEditForm">
-                        <input type="hidden" id="edit_index">
-                        <div class="row g-3" id="roFormFieldsContainer"></div>
+                        <input type="hidden" id="edit_timestamp_raw">
+                        <div class="row g-3" id="roFormFieldsContainer">
+                            <!-- จะถูกสร้างฟิลด์อัตโนมัติด้วย JavaScript -->
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer border-top border-secondary py-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button>
-                    <button type="button" class="btn btn-info btn-sm px-4" id="btnSaveEdit" onclick="saveEditedRecord()">บันทึกการแก้ไข</button>
+                    <button type="button" class="btn btn-info btn-sm px-4" onclick="saveEditedRecord()">บันทึกการแก้ไข</button>
                 </div>
             </div>
         </div>
@@ -361,8 +361,8 @@
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
                 
-                globalData = data.map((row, index) => {
-                    let mapped = { rawObj: row, globalIndex: index };
+                globalData = data.map(row => {
+                    let mapped = { rawObj: row };
                     for (let k in row) {
                         let lk = k.toLowerCase().replace(/\s+/g, ' '); 
                         let val = row[k];
@@ -410,7 +410,7 @@
                     availableDates.sort((a,b) => a.localeCompare(b));
                     initCalendar();
                 }
-            } catch (e) { console.error(e); Swal.fire('เกิดข้อผิดพลาด', 'พบปัญหาในการดึงข้อมูล RO โปรดรีเฟรชหน้าจอ', 'error'); } 
+            } catch (e) { console.error(e); alert("พบปัญหาในการดึงข้อมูล RO โปรดรีเฟรชหน้าจอ"); } 
             finally { 
                 document.getElementById('loadingOverlay').style.display = 'none'; 
             }
@@ -554,6 +554,8 @@
                 let recVal = parseFloat(row.rec) || 0;
                 let recClass = (recVal >= 45 && recVal <= 55) ? 'text-info' : 'text-warning fw-bold';
 
+                let rawJSON = encodeURIComponent(JSON.stringify(row.rawObj));
+
                 tr.innerHTML = `
                     <td><small class="text-secondary">${row.timeDisplay || '-'}</small></td>
                     <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
@@ -561,8 +563,8 @@
                     <td class="${recClass}">${row.rec || "-"}</td>
                     <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal(${row.globalIndex})" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal(${row.globalIndex})" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal('${rawJSON}')" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal('${rawJSON}')" title="แก้ไข"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
@@ -571,10 +573,10 @@
         }
 
         // ==========================================
-        // ฟังก์ชันจัดการ Modal ดู / แก้ไข / ลบ
+        // ฟังก์ชันจัดการตาราง: View, Edit, Delete (ใส่รหัส 1234)
         // ==========================================
-        function openDetailModal(index) {
-            let rowObj = globalData[index].rawObj;
+        function openDetailModal(encodedJson) {
+            let rowObj = JSON.parse(decodeURIComponent(encodedJson));
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-eye me-2"></i>รายละเอียดข้อมูลการตรวจเช็ค`;
             
@@ -588,15 +590,16 @@
                 `;
             }
             container.innerHTML = html;
-            document.getElementById('btnSaveEdit').style.display = 'none';
+            // ซ่อนปุ่มบันทึกตอนดูอย่างเดียว
+            document.querySelector('#roDetailModal .modal-footer .btn-info').style.display = 'none';
             new bootstrap.Modal(document.getElementById('roDetailModal')).show();
         }
 
-        function openEditModal(index) {
-            let rowObj = globalData[index].rawObj;
+        function openEditModal(encodedJson) {
+            let rowObj = JSON.parse(decodeURIComponent(encodedJson));
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-edit me-2"></i>แก้ไขข้อมูลการตรวจเช็คระบบ RO`;
-            document.getElementById('edit_index').value = index;
+            document.getElementById('edit_timestamp_raw').value = rowObj['ประทับเวลา'] || rowObj['Timestamp'] || '';
 
             let html = '';
             for (let key in rowObj) {
@@ -609,22 +612,20 @@
                 `;
             }
             container.innerHTML = html;
-            document.getElementById('btnSaveEdit').style.display = 'block';
+            document.querySelector('#roDetailModal .modal-footer .btn-info').style.display = 'block';
             new bootstrap.Modal(document.getElementById('roDetailModal')).show();
         }
 
         async function saveEditedRecord() {
-            let index = document.getElementById('edit_index').value;
-            let originalRow = globalData[index].rawObj;
             let inputs = document.querySelectorAll('.edit-input');
-            
-            let updatedObj = { timestamp_raw: originalRow['ประทับเวลา'] || originalRow['Timestamp'] || globalData[index].timestamp_raw };
+            let updatedObj = { timestamp_raw: document.getElementById('edit_timestamp_raw').value };
             
             inputs.forEach(input => {
                 let key = input.getAttribute('data-key');
                 let val = input.value;
                 updatedObj[key] = val;
                 
+                // แมปค่ากลับเข้าฟิลด์โค้ดภายใน
                 let lk = key.toLowerCase();
                 if(lk === 'orp') updatedObj.orp = extractNum(val);
                 else if(lk.includes('chlorine ในน้ำดิบ')) updatedObj.cl_raw = val;
@@ -649,7 +650,6 @@
             });
 
             try {
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -657,51 +657,28 @@
                 });
                 const result = await res.json();
                 if(result.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกการแก้ไขเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+                    alert("บันทึกการแก้ไขเรียบร้อยแล้ว");
                     bootstrap.Modal.getInstance(document.getElementById('roDetailModal')).hide();
-                    loadData();
+                    loadData(); // รีโหลดข้อมูลใหม่
                 } else {
-                    Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
+                    alert("เกิดข้อผิดพลาด: " + result.message);
                 }
             } catch(e) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเพื่อบันทึกได้: ' + e.toString(), 'error');
+                alert("ไม่สามารถเชื่อมต่อเพื่อบันทึกได้: " + e.toString());
             }
         }
 
         async function deleteRecord(timestampRaw) {
-            const { value: pass } = await Swal.fire({
-                title: 'ยืนยันการลบข้อมูล',
-                input: 'password',
-                inputLabel: 'กรุณากรอกรหัสผ่าน 4 หลัก เพื่อยืนยัน:',
-                inputPlaceholder: 'รหัสผ่าน',
-                inputAttributes: { maxlength: 4, autocapitalize: 'off', autocorrect: 'off' },
-                showCancelButton: true,
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#d33'
-            });
-
-            if (!pass) return;
+            let pass = prompt("กรุณากรอกรหัสผ่าน 4 หลัก เพื่อยืนยันการลบข้อมูล:");
+            if (pass === null) return; // กด Cancel
             if (pass !== "1234") {
-                Swal.fire('รหัสผ่านไม่ถูกต้อง', 'ไม่อนุญาตให้ลบข้อมูล', 'error');
+                alert("รหัสผ่านไม่ถูกต้อง! ไม่อนุญาตให้ลบข้อมูล");
                 return;
             }
 
-            const confirmDel = await Swal.fire({
-                title: 'แน่ใจหรือไม่?',
-                text: "ข้อมูลนี้จะถูกลบออกจากระบบอย่างถาวร!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'ใช่, ลบเลย!',
-                cancelButtonText: 'ยกเลิก'
-            });
-
-            if (!confirmDel.isConfirmed) return;
+            if (!confirm("คุณแน่ใจหรือไม่ที่จะลบรายการข้อมูลนี้?")) return;
 
             try {
-                Swal.fire({ title: 'กำลังลบข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -709,18 +686,18 @@
                 });
                 const result = await res.json();
                 if(result.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'ลบสำเร็จ!', text: 'ลบข้อมูลเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
-                    loadData();
+                    alert("ลบข้อมูลเรียบร้อยแล้ว");
+                    loadData(); // รีโหลดข้อมูลใหม่
                 } else {
-                    Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
+                    alert("เกิดข้อผิดพลาด: " + result.message);
                 }
             } catch(e) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเพื่อลบได้: ' + e.toString(), 'error');
+                alert("ไม่สามารถเชื่อมต่อเพื่อลบได้: " + e.toString());
             }
         }
 
         // ==========================================
-        // ดึงโฟลเดอร์ผลเพาะเชื้อ C/S
+        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S
         // ==========================================
         async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
