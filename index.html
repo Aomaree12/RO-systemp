@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบติดตามน้ำบริสุทธิ์ RO แบบละเอียด - สถาบันบำราศนราดูร</title>
+    <title>ระบบติดตามน้ำบริสุทธิ์ RO - สถาบันบำราศนราดูร</title>
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -12,11 +12,12 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        .card-custom { background-color: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 15px; height: 100%; }
+        .card-custom { background-color: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 20px; }
         .header-title { background: linear-gradient(90deg, #1e293b, #0f172a); border-radius: 20px; border-left: 5px solid #38bdf8; }
         
         .digital-value { font-size: 2rem; font-weight: bold; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
         .digital-sm { font-size: 1.5rem; font-weight: bold; color: #f8fafc; }
+        .digital-xl { font-size: 2.5rem; font-weight: bold; }
         
         /* Thermometer */
         .thermo-container { display: flex; align-items: center; justify-content: center; gap: 15px; }
@@ -25,12 +26,14 @@
         .thermo-bulb { width: 36px; height: 36px; background: #3b82f6; border-radius: 50%; position: absolute; bottom: -20px; left: -7px; border: 2px solid #64748b; }
         
         /* Rotameter */
-        .rotameter { width: 40px; height: 200px; background: rgba(255,255,255,0.05); border: 2px solid #475569; border-radius: 10px; position: relative; margin: 0 auto; display: flex; justify-content: center; }
+        .rotameter-wrapper { display: flex; align-items: center; justify-content: center; }
+        .rotameter-scale { display: flex; flex-direction: column; justify-content: space-between; height: 200px; font-size: 0.75rem; color: #94a3b8; text-align: right; padding-right: 4px; font-weight: bold; }
+        .rotameter { width: 40px; height: 200px; background: rgba(255,255,255,0.05); border: 2px solid #475569; border-radius: 10px; position: relative; display: flex; justify-content: center; }
         .rotameter::before { content: ''; position: absolute; left: 5px; height: 100%; width: 5px; border-left: 1px dashed #64748b; }
         .float-bob { width: 24px; height: 24px; border-radius: 50%; position: absolute; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: bottom 1s ease; }
         
-        .gauge-chart { width: 100%; height: 200px; } /* ปรับขนาดเกจให้พอดีในหน้าจอ */
-        .status-badge { font-size: 0.9rem; padding: 6px 12px; border-radius: 10px; }
+        .gauge-chart { width: 100%; height: 200px; }
+        .col-label { font-size: 0.8rem; color: #94a3b8; margin-top: -10px; text-align: center; display: block; line-height: 1.2;}
     </style>
 </head>
 <body class="p-3 p-md-4">
@@ -53,7 +56,7 @@
                         </select>
                     </div>
                     <div class="text-lg-end min-w-150">
-                        <span class="badge bg-success status-badge mb-1"><i class="fas fa-check-circle"></i> ระบบทำงานปกติ</span><br>
+                        <span class="badge bg-success mb-1"><i class="fas fa-check-circle"></i> ระบบทำงานปกติ</span><br>
                         <small class="text-muted">ผู้ตรวจสอบ: <span id="valOperator" class="text-info fw-bold">pop</span></small>
                     </div>
                 </div>
@@ -62,116 +65,118 @@
     </div>
 
     <!-- โซนที่ 1: คุณภาพน้ำ (Water Quality) -->
-    <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-vial me-2"></i>คุณภาพน้ำ (Water Quality)</h5>
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center"><small class="text-secondary">ORP น้ำเข้า</small><div class="digital-sm text-warning mt-1"><span id="valOrp">449</span> <span class="fs-6">mV</span></div></div></div>
-        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center"><small class="text-secondary">Chlorine น้ำดิบ</small><div class="digital-sm text-warning mt-1"><span id="valCl">0.3</span> <span class="fs-6">ppm</span></div></div></div>
-        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center"><small class="text-secondary">Cond. น้ำดิบ</small><div class="digital-sm text-warning mt-1"><span id="valCondRaw">147.3</span> <span class="fs-6">µS</span></div></div></div>
-        <div class="col-6 col-md-3 col-lg-3"><div class="card-custom text-center border-info"><small class="text-info fw-bold">Conductivity น้ำ RO</small><div class="digital-value mt-1"><span id="valCondRo">3.04</span> <span class="fs-5">µS/cm</span></div><small class="text-success"><i class="fas fa-check"></i> ผ่านเกณฑ์ TRT</small></div></div>
-        <div class="col-12 col-md-12 col-lg-3">
-            <div class="card-custom">
-                <small class="text-secondary text-center d-block">อุณหภูมิน้ำ RO</small>
+        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">ORP น้ำเข้า</small><div class="digital-sm text-warning mt-1"><span id="valOrp">449</span> <span class="fs-6">mV</span></div></div></div>
+        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">Chlorine น้ำดิบ {0.3-0.5}</small><div class="digital-sm text-warning mt-1"><span id="valCl">0.3</span> <span class="fs-6">ppm</span></div></div></div>
+        <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">RAW Cond {< 500}</small><div class="digital-sm text-warning mt-1"><span id="valCondRaw">147.3</span> <span class="fs-6">µS</span></div></div></div>
+        <div class="col-6 col-md-3 col-lg-3"><div class="card-custom text-center border-info h-100"><small class="text-info fw-bold">Conductivity RO {< 10}</small><div class="digital-value mt-1"><span id="valCondRo">3.04</span> <span class="fs-5">µS/cm</span></div></div></div>
+        <div class="col-12 col-lg-3">
+            <div class="card-custom h-100 d-flex flex-column justify-content-center">
+                <small class="text-secondary text-center d-block">TEMP. B/T {< 35 c}</small>
                 <div class="thermo-container mt-2">
                     <div class="thermo-glass"><div id="thermoFluid" class="thermo-fluid" style="height: 85%;"></div><div class="thermo-bulb"></div></div>
-                    <div><div class="digital-sm text-white"><span id="valTemp">34.2</span><span class="fs-6">°C</span></div><span class="badge bg-success mt-1">< 35°C</span></div>
+                    <div><div class="digital-sm text-white"><span id="valTemp">34.2</span><span class="fs-6">°C</span></div></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- โซนที่ 2: แรงดันระบบก่อนกรอง (Pre-Treatment Pressures) -->
-    <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-filter me-2"></i>แรงดันระบบกรองเบื้องต้น (Pre-Treatment) - PSI</h5>
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
+                <h6 class="text-secondary mb-3"><i class="fas fa-filter me-2"></i>แรงดันระบบกรองเบื้องต้น (Pre-Treatment)</h6>
                 <div class="row g-2">
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gFeed" class="gauge-chart"></div><div class="text-center text-muted small">Feed Pump</div></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gSand" class="gauge-chart"></div><div class="text-center text-muted small">Sand Filter</div></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gC1" class="gauge-chart"></div><div class="text-center text-muted small">Carbon 1</div></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gC2" class="gauge-chart"></div><div class="text-center text-muted small">Carbon 2</div></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gSoft" class="gauge-chart"></div><div class="text-center text-muted small">Softener</div></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gCart" class="gauge-chart"></div><div class="text-center text-muted small">Cartridge (5µ)</div></div>
+                    <div class="col-6 col-md-4 col-lg-2"><div id="gFeed" class="gauge-chart"></div><span class="col-label">Feed pump Pressure<br>{> 40 psi}</span></div>
+                    <div class="col-6 col-md-4 col-lg-2"><div id="gSand" class="gauge-chart"></div><span class="col-label">Sand pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4 col-lg-2"><div id="gC1" class="gauge-chart"></div><span class="col-label">Carbon 1 Pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4 col-lg-2"><div id="gC2" class="gauge-chart"></div><span class="col-label">Carbon 2 Pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4 col-lg-2"><div id="gSoft" class="gauge-chart"></div><span class="col-label">Softener pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4 col-lg-2"><div id="gCart" class="gauge-chart"></div><span class="col-label">Cartridge Filter 5 MICRON<br>{psi}</span></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- โซนที่ 3: ระบบ RO และ อัตราการไหล -->
-    <div class="row g-4 mb-4">
-        <!-- แรงดัน RO -->
+    <!-- โซนที่ 3: ระบบ RO, อัตราการไหล และ ประสิทธิภาพ -->
+    <div class="row g-3 mb-4">
         <div class="col-lg-5">
-            <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-tachometer-alt me-2"></i>แรงดันระบบ RO (PSI)</h5>
-            <div class="card-custom">
-                <div class="row">
-                    <div class="col-6 col-md-4"><div id="gRoPump" class="gauge-chart"></div><div class="text-center text-info small fw-bold">RO Pump</div></div>
-                    <div class="col-6 col-md-4"><div id="gConcPress" class="gauge-chart"></div><div class="text-center text-warning small fw-bold">Concentrate</div></div>
-                    <div class="col-12 col-md-4"><div id="gPermPress" class="gauge-chart"></div><div class="text-center text-success small fw-bold">Permeate</div></div>
+            <div class="card-custom h-100 d-flex flex-column">
+                <h6 class="text-secondary mb-3"><i class="fas fa-tachometer-alt me-2"></i>แรงดันระบบ RO</h6>
+                <div class="row flex-grow-1 align-items-center">
+                    <div class="col-6 col-md-4"><div id="gRoPump" class="gauge-chart"></div><span class="col-label text-info">RO Pressure Pump</span></div>
+                    <div class="col-6 col-md-4"><div id="gConcPress" class="gauge-chart"></div><span class="col-label text-warning">Concentrate Pressure<br>{80-180 psi}</span></div>
+                    <div class="col-12 col-md-4"><div id="gPermPress" class="gauge-chart"></div><span class="col-label text-success">Permeate Pressure<br>{80-180 psi}</span></div>
                 </div>
             </div>
         </div>
         
-        <!-- Flow & Efficiency -->
         <div class="col-lg-4">
-            <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-water me-2"></i>อัตราการไหล (LPM)</h5>
-            <div class="card-custom d-flex justify-content-around align-items-center">
-                <div class="text-center">
-                    <div class="rotameter"><div id="bobPermeate" class="float-bob" style="background: radial-gradient(circle, #38bdf8, #0369a1); bottom: 37.5%;"></div></div>
-                    <h6 class="mt-3 text-info small">Permeate</h6>
-                    <h5 class="mb-0"><span id="valPermFlow">15</span></h5>
-                </div>
-                <div class="text-center">
-                    <div class="rotameter"><div id="bobReject" class="float-bob" style="background: radial-gradient(circle, #f59e0b, #b45309); bottom: 80%;"></div></div>
-                    <h6 class="mt-3 text-warning small">Concentrate</h6>
-                    <h5 class="mb-0"><span id="valConcFlow">32</span></h5>
+            <div class="card-custom h-100">
+                <h6 class="text-secondary mb-3"><i class="fas fa-water me-2"></i>อัตราการไหล (LPM)</h6>
+                <div class="d-flex justify-content-around align-items-center">
+                    <div class="text-center">
+                        <div class="rotameter-wrapper">
+                            <div class="rotameter-scale"><span>40-</span><span>30-</span><span>20-</span><span>10-</span><span>0-</span></div>
+                            <div class="rotameter"><div id="bobPermeate" class="float-bob" style="background: radial-gradient(circle, #38bdf8, #0369a1); bottom: 37.5%;"></div></div>
+                        </div>
+                        <span class="col-label mt-2">Permeate Flow<br>{18-35 LPM}</span>
+                        <h4 class="mt-1 text-info"><span id="valPermFlow">15</span></h4>
+                    </div>
+                    <div class="text-center">
+                        <div class="rotameter-wrapper">
+                            <div class="rotameter-scale"><span>40-</span><span>30-</span><span>20-</span><span>10-</span><span>0-</span></div>
+                            <div class="rotameter"><div id="bobReject" class="float-bob" style="background: radial-gradient(circle, #f59e0b, #b45309); bottom: 80%;"></div></div>
+                        </div>
+                        <span class="col-label mt-2">Concentrate Flow<br>{18-35 LPM}</span>
+                        <h4 class="mt-1 text-warning"><span id="valConcFlow">32</span></h4>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-3">
-            <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-percent me-2"></i>ประสิทธิภาพระบบ</h5>
-            <div class="card-custom d-flex flex-column justify-content-center gap-3">
-                <div>
-                    <div class="d-flex justify-content-between"><small class="text-secondary">Salt Rejection (> 90%)</small><span id="valRej" class="text-success fw-bold">97.94%</span></div>
-                    <div class="progress mt-1" style="height: 10px; background-color: #334155;"><div id="barRej" class="progress-bar bg-success" style="width: 97.94%"></div></div>
-                </div>
-                <div>
-                    <div class="d-flex justify-content-between"><small class="text-secondary">Recovery Rate (45-55%)</small><span id="valRec" class="text-warning fw-bold">31.91%</span></div>
-                    <div class="progress mt-1" style="height: 10px; background-color: #334155;"><div id="barRec" class="progress-bar bg-warning" style="width: 31.91%"></div></div>
-                </div>
+        <div class="col-lg-3 d-flex flex-column gap-3">
+            <div class="card-custom text-center h-50 d-flex flex-column justify-content-center">
+                <small class="text-secondary">% Salt Rejection {> 90%}</small>
+                <div class="digital-xl text-success mt-2"><span id="valRej">97.94</span>%</div>
+            </div>
+            <div class="card-custom text-center h-50 d-flex flex-column justify-content-center">
+                <small class="text-secondary">% Recovery {45-55%}</small>
+                <div class="digital-xl text-warning mt-2"><span id="valRec">31.91</span>%</div>
             </div>
         </div>
     </div>
 
-    <!-- โซนที่ 4: สถานะนาฬิกา และ สารเคมี + กราฟ -->
-    <div class="row g-4">
+    <!-- โซนที่ 4: สถานะนาฬิกา & กราฟ -->
+    <div class="row g-3">
         <div class="col-lg-4">
-            <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-clipboard-check me-2"></i>การทำงาน & สารเคมี</h5>
-            <div class="card-custom">
-                <table class="table table-dark table-sm table-borderless align-middle m-0">
+            <div class="card-custom h-100">
+                <h6 class="text-secondary mb-3"><i class="fas fa-clipboard-check me-2"></i>การทำงาน & สารเคมี</h6>
+                <table class="table table-dark table-sm table-borderless align-middle m-0" style="font-size: 0.9rem;">
                     <tbody>
                         <tr><td class="text-secondary">Sand Clock</td><td class="text-end"><span id="valSandClk" class="badge bg-success">Yes</span></td></tr>
                         <tr><td class="text-secondary">Carbon 1 Clock</td><td class="text-end"><span id="valC1Clk" class="badge bg-success">Yes</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 1 Cl Test</td><td class="text-end"><span id="valC1Cl" class="text-white">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 1 Chlorine test {<0.1}</td><td class="text-end"><span id="valC1Cl" class="text-white">-</span></td></tr>
                         <tr><td class="text-secondary">Carbon 2 Clock</td><td class="text-end"><span id="valC2Clk" class="badge bg-success">Yes</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 2 Cl Test</td><td class="text-end"><span id="valC2Cl" class="text-white">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 2 Chlorine test {<0.1}</td><td class="text-end"><span id="valC2Cl" class="text-white">-</span></td></tr>
                         <tr><td class="text-secondary">Softener Clock</td><td class="text-end"><span id="valSoftClk" class="badge bg-success">Yes</span></td></tr>
-                        <tr><td class="text-secondary">Softener Brine (kg)</td><td class="text-end text-info fw-bold" id="valBrine">30</td></tr>
-                        <tr><td class="text-secondary">Aquadur Test</td><td class="text-end"><span id="valAqua" class="text-white">-</span></td></tr>
+                        <tr><td class="text-secondary">Softener Brine Tank (12.5 kg)</td><td class="text-end text-info fw-bold" id="valBrine">30</td></tr>
+                        <tr><td class="text-secondary">Softener Aquadur test {<17.1}</td><td class="text-end"><span id="valAqua" class="text-white">-</span></td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <div class="col-lg-8">
-            <h5 class="text-secondary mb-3 border-bottom border-secondary pb-2"><i class="fas fa-chart-line me-2"></i>กราฟแนวโน้ม Conductivity RO ประจำเดือน</h5>
-            <div class="card-custom">
-                <div id="monthlyChart" style="width: 100%; height: 260px;"></div>
+            <div class="card-custom h-100 d-flex flex-column">
+                <h6 class="text-secondary mb-3"><i class="fas fa-chart-line me-2"></i>กราฟแนวโน้ม Conductivity RO ประจำเดือน</h6>
+                <div id="monthlyChart" class="flex-grow-1" style="min-height: 250px;"></div>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script>
-        // 1. ฐานข้อมูลจำลอง (Mock Data) รวมวันที่ที่คุณระบุ
+        // ข้อมูลจำลอง (Mock Data)
         const database = [
             { date: "2026-09-22", orp: 449, cl_raw: 0.3, press_feed: 60, press_sand: 66, clk_sand: "Yes", press_soft: 64, clk_soft: "Yes", brine: 30, aqua: "-", press_c1: 64, clk_c1: "Yes", cl_c1: "-", press_c2: 74, clk_c2: "Yes", cl_c2: "-", press_cart: 70, cond_raw: 147.3, temp: 34.2, press_ro_pump: 130, press_conc: 140, press_perm: 84, flow_perm: 15, flow_conc: 32, cond_ro: 3.04, rej: 97.94, rec: 31.91, operator: "pop" },
             { date: "2026-09-23", orp: 562, cl_raw: 0.4, press_feed: 58, press_sand: 72, clk_sand: "Yes", press_soft: 66, clk_soft: "Yes", brine: 25, aqua: "0", press_c1: 60, clk_c1: "Yes", cl_c1: "0", press_c2: 68, clk_c2: "Yes", cl_c2: "0", press_cart: 65, cond_raw: 144.8, temp: 35.0, press_ro_pump: 125, press_conc: 135, press_perm: 80, flow_perm: 16, flow_conc: 32, cond_ro: 5.55, rej: 96.16, rec: 33.33, operator: "Aomaree" },
@@ -181,11 +186,10 @@
         let gauges = {};
         let monthlyChart;
 
-        // 2. ฟังก์ชันสร้าง Gauge 
         function createGauge(elementId, maxVal, isRO) {
             let colorStops = isRO 
-                ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] // RO Scale (0-200)
-                : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']]; // Pre-treat Scale (0-100)
+                ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] 
+                : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']];
 
             let chart = echarts.init(document.getElementById(elementId));
             chart.setOption({
@@ -205,9 +209,7 @@
             gauges[elementId] = chart;
         }
 
-        // 3. ฟังก์ชันอัปเดตหน้าจอทั้งหมด
         function updateDashboard(data) {
-            // Text & Digital Values
             document.getElementById('valOperator').innerText = data.operator;
             document.getElementById('valOrp').innerText = data.orp;
             document.getElementById('valCl').innerText = data.cl_raw;
@@ -215,21 +217,16 @@
             document.getElementById('valCondRo').innerText = data.cond_ro;
             document.getElementById('valTemp').innerText = data.temp;
             
-            // Flow & Percentages
             document.getElementById('valPermFlow').innerText = data.flow_perm;
             document.getElementById('valConcFlow').innerText = data.flow_conc;
-            document.getElementById('valRej').innerText = data.rej + "%";
-            document.getElementById('valRec').innerText = data.rec + "%";
-            document.getElementById('barRej').style.width = data.rej + "%";
-            document.getElementById('barRec').style.width = data.rec + "%";
+            document.getElementById('valRej').innerText = data.rej;
+            document.getElementById('valRec').innerText = data.rec;
 
-            // Rotameters (Max 40 LPM)
+            // ปรับลูกลอย (Max 40 LPM)
             document.getElementById('bobPermeate').style.bottom = (data.flow_perm / 40 * 100) + "%";
             document.getElementById('bobReject').style.bottom = (data.flow_conc / 40 * 100) + "%";
-            // Thermometer (Max 40 C)
             document.getElementById('thermoFluid').style.height = (data.temp / 40 * 100) + "%";
 
-            // Clocks & Chems
             const setBadge = (id, val) => {
                 let el = document.getElementById(id);
                 if(val === "Yes") { el.className = "badge bg-success"; el.innerText = "Yes"; }
@@ -245,25 +242,25 @@
             setBadge('valAqua', data.aqua);
             document.getElementById('valBrine').innerText = data.brine;
 
-            // Update Gauges
             gauges['gFeed'].setOption({ series: [{ data: [{ value: data.press_feed }] }] });
             gauges['gSand'].setOption({ series: [{ data: [{ value: data.press_sand }] }] });
             gauges['gC1'].setOption({ series: [{ data: [{ value: data.press_c1 }] }] });
             gauges['gC2'].setOption({ series: [{ data: [{ value: data.press_c2 }] }] });
             gauges['gSoft'].setOption({ series: [{ data: [{ value: data.press_soft }] }] });
             gauges['gCart'].setOption({ series: [{ data: [{ value: data.press_cart }] }] });
-            
             gauges['gRoPump'].setOption({ series: [{ data: [{ value: data.press_ro_pump }] }] });
             gauges['gConcPress'].setOption({ series: [{ data: [{ value: data.press_conc }] }] });
             gauges['gPermPress'].setOption({ series: [{ data: [{ value: data.press_perm }] }] });
         }
 
-        // 4. ฟังก์ชันอัปเดตกราฟเดือนปัจจุบัน
-        function renderChart() {
-            monthlyChart = echarts.init(document.getElementById('monthlyChart'));
-            // ดึงข้อมูลทั้งเดือนจาก database มาสร้างกราฟ
-            let dates = database.map(d => d.date.split('-')[2] + ' ก.ย.');
-            let condData = database.map(d => d.cond_ro);
+        function renderChart(monthData) {
+            if(!monthlyChart) monthlyChart = echarts.init(document.getElementById('monthlyChart'));
+            
+            let dates = monthData.map(d => {
+                let parts = d.date.split('-');
+                return parts[2] + '/' + parts[1]; // แปลงเป็น วว/ดด
+            });
+            let condData = monthData.map(d => d.cond_ro);
 
             monthlyChart.setOption({
                 tooltip: { trigger: 'axis' },
@@ -278,33 +275,28 @@
             });
         }
 
-        // 5. จัดการ Filter
         function applyFilter() {
             let selectedDate = document.getElementById('dateFilter').value;
+            
+            // อัปเดตข้อมูลกล่องและเกจตามวันที่เลือก
             let targetData = database.find(d => d.date === selectedDate);
-            if(targetData) {
-                updateDashboard(targetData);
-            } else {
-                alert("ไม่มีข้อมูลในวันที่เลือก");
-            }
+            if(targetData) updateDashboard(targetData);
+            
+            // ดึงข้อมูลทั้งหมดใน "เดือนเดียวกัน" กับวันที่เลือก มาจุดลงกราฟ
+            let yearMonth = selectedDate.substring(0, 7); // เอาแค่ 2026-09
+            let currentMonthData = database.filter(d => d.date.startsWith(yearMonth));
+            renderChart(currentMonthData);
         }
 
-        // 6. Initialize
         window.onload = () => {
-            // สร้างเกจ Pre-treatment (0-100 PSI)
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
-            // สร้างเกจ RO (0-200 PSI)
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
             
-            renderChart();
-            
-            // โหลดข้อมูลเริ่มต้นตาม Filter (22/09/2026)
             applyFilter();
 
-            // รองรับการย่อขยายจอ
             window.addEventListener('resize', () => {
                 Object.values(gauges).forEach(g => g.resize());
-                monthlyChart.resize();
+                if(monthlyChart) monthlyChart.resize();
             });
         };
     </script>
