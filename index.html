@@ -236,26 +236,32 @@
         </div>
     </div>
 
-    <!-- โซนที่ 6: โฟลเดอร์ผลเพาะเชื้อ C/S (ดึงข้อมูลผ่าน Web App URL) -->
+    <!-- โซนที่ 6: ผลเพาะเชื้อระบบน้ำ (ขนาดกะทัดรัด พร้อมฟิลเตอร์เดือนปี) -->
     <div class="row g-3">
         <div class="col-12">
-            <div class="card-custom border-success p-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+            <div class="card-custom border-success p-3 p-md-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
                     <div>
-                        <h5 class="text-white m-0"><i class="fa-solid fa-folder-tree text-success me-2"></i>โฟลเดอร์ผลเพาะเชื้อระบบน้ำ C/S (Water Culture Folders)</h5>
-                        <small class="text-muted">ดึงข้อมูลโฟลเดอร์รายงานประจำเดือนจากระบบอัตโนมัติ</small>
+                        <h5 class="text-white m-0"><i class="fa-solid fa-microscope text-success me-2"></i>ผลเพาะเชื้อระบบน้ำ</h5>
+                        <small class="text-muted">คลิกเลือกโฟลเดอร์เพื่อดูรายงาน PDF รายเดือน</small>
                     </div>
-                    <div style="width: 250px;">
-                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาโฟลเดอร์เดือน/ปี..." class="form-control bg-dark text-white border-secondary form-control-sm rounded-pill px-3" />
+                    <div class="d-flex gap-2">
+                        <!-- Dropdown Filter เลือกเดือนปี -->
+                        <select id="csMonthFilter" class="form-select form-select-sm bg-dark text-white border-secondary rounded-pill px-3" style="width: 180px;">
+                            <option value="all">-- ทุกเดือน/ปี --</option>
+                        </select>
+                        <!-- ช่องค้นหาข้อความ -->
+                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาโฟลเดอร์..." class="form-control form-control-sm bg-dark text-white border-secondary rounded-pill px-3" style="width: 160px;" />
                     </div>
                 </div>
 
                 <div id="csLoader" class="text-center py-3">
                     <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์ผล C/S...</span>
+                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์...</span>
                 </div>
                 
-                <div id="csFolderGroups" class="row g-3"></div>
+                <!-- พื้นที่แสดงโฟลเดอร์แบบเรียงชิด ประหยัดพื้นที่ -->
+                <div id="csFolderGroups" class="row g-2"></div>
             </div>
         </div>
     </div>
@@ -264,19 +270,19 @@
     <div class="modal fade" id="csFileModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
-                <div class="modal-header border-bottom border-secondary bg-success bg-opacity-10">
-                    <h5 class="modal-title text-success fw-bold" id="csModalTitle"><i class="fa-solid fa-folder-open me-2"></i>รายการรายงาน</h5>
+                <div class="modal-header border-bottom border-secondary bg-success bg-opacity-10 py-2">
+                    <h6 class="modal-title text-success fw-bold m-0" id="csModalTitle"><i class="fa-solid fa-folder-open me-2"></i>รายการรายงาน</h6>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
-                    <div id="csModalLoading" class="text-center py-4">
-                        <div class="spinner-border text-success" role="status"></div>
-                        <p class="text-muted mt-2">กำลังดึงรายการไฟล์...</p>
+                <div class="modal-body p-3" style="max-height: 60vh; overflow-y: auto;">
+                    <div id="csModalLoading" class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                        <p class="text-muted mt-1 small">กำลังดึงรายการไฟล์...</p>
                     </div>
                     <div id="csFileList" class="list-group list-group-flush bg-transparent"></div>
                     <div id="csNoFiles" class="text-center py-4 text-muted hidden">
                         <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
-                        <p>ไม่พบไฟล์เอกสารในโฟลเดอร์นี้</p>
+                        <p class="small">ไม่พบไฟล์เอกสารในโฟลเดอร์นี้</p>
                     </div>
                 </div>
             </div>
@@ -543,7 +549,7 @@
         }
 
         // ==========================================
-        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S ผ่าน Fetch ไปยัง Web App URL
+        // ฟังก์ชันจัดการผลเพาะเชื้อ C/S (แบบกะทัดรัด + ฟิลเตอร์เดือนปี)
         // ==========================================
         async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
@@ -552,95 +558,86 @@
                 const folders = await response.json();
                 document.getElementById('csLoader').style.display = 'none';
                 
-                if(folders && folders.error) {
-                    throw new Error(folders.error);
-                }
+                if(folders && folders.error) throw new Error(folders.error);
                 
-                allCSFolders = folders || [];
+                // เรียงลำดับโฟลเดอร์จากใหม่ไปเก่าตามชื่อ
+                allCSFolders = (folders || []).sort((a, b) => b.name.localeCompare(a.name, 'th'));
+                
+                populateMonthFilter(allCSFolders);
                 renderCSGroups(allCSFolders);
             } catch (err) {
                 document.getElementById('csLoader').style.display = 'none';
-                document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาดในการดึงโฟลเดอร์: ${err.message}</div>`;
+                document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center small">เกิดข้อผิดพลาด: ${err.message}</div>`;
             }
         }
 
         function extractYM(name) {
             let m = name.match(/(20\d{2}|25\d{2})[-\/\. ]?(0[1-9]|1[0-2])/);
-            if (m) return {year: m[1], month: m[2]};
+            if (m) return {year: m[1], month: m[2], key: `${m[1]}-${m.length>2?m[2]:''}`};
             m = name.match(/(0[1-9]|1[0-2])[-\/\. ]?(20\d{2}|25\d{2})/);
-            if (m) return {year: m[2], month: m[1]};
+            if (m) return {year: m[2], month: m[1], key: `${m[2]}-${m[1]}`};
             m = name.match(/(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)[ ]?(20\d{2}|25\d{2})/);
             if (m) {
-                let month = String(csMonthNamesFull.indexOf(m[1])+1).padStart(2,'0');
-                return {year: m[2], month};
+                let monthNum = String(csMonthNamesFull.indexOf(m[1])+1).padStart(2,'0');
+                return {year: m[2], month: monthNum, key: `${m[2]}-${monthNum}`};
             }
-            return {year:'อื่นๆ', month:'อื่นๆ'};
+            return {year:'อื่นๆ', month:'อื่นๆ', key: 'อื่นๆ'};
+        }
+
+        function populateMonthFilter(folders) {
+            const selectEl = document.getElementById('csMonthFilter');
+            let monthSet = new Set();
+            
+            folders.forEach(f => {
+                let ym = extractYM(f.name);
+                if (ym.key !== 'อื่นๆ') {
+                    monthSet.add(ym.key);
+                }
+            });
+
+            let sortedKeys = Array.from(monthSet).sort((a,b) => b.localeCompare(a));
+            let optionsHtml = `<option value="all">-- ทุกเดือน/ปี --</option>`;
+            
+            sortedKeys.forEach(key => {
+                let [year, month] = key.split('-');
+                let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
+                let yLabel = year.startsWith('25') ? `พ.ศ. ${year}` : year;
+                optionsHtml += `<option value="${key}">${mName} ${yLabel}</option>`;
+            });
+            selectEl.innerHTML = optionsHtml;
         }
 
         function renderCSGroups(folders) {
             const container = document.getElementById('csFolderGroups');
             const keyword = document.getElementById('csSearchInput').value.trim().toLowerCase();
+            const selectedMonthKey = document.getElementById('csMonthFilter').value;
             
-            let filtered = folders;
-            if (keyword) {
-                filtered = folders.filter(f => f.name.toLowerCase().includes(keyword));
-            }
-
-            let groups = {};
-            filtered.forEach(f => {
+            let filtered = folders.filter(f => {
                 let ym = extractYM(f.name);
-                let key = (ym.year !== 'อื่นๆ') ? `${ym.year}-${ym.month}` : 'อื่นๆ';
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(f);
+                let matchKeyword = f.name.toLowerCase().includes(keyword);
+                let matchMonth = (selectedMonthKey === 'all' || ym.key === selectedMonthKey);
+                return matchKeyword && matchMonth;
             });
-            let sortedKeys = Object.keys(groups).filter(k => k !== 'อื่นๆ').sort((a,b) => b.localeCompare(a));
-            if (groups['อื่นๆ']) sortedKeys.push('อื่นๆ');
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-3">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>`;
+                container.innerHTML = `<div class="text-center text-muted py-3 small">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>`;
                 return;
             }
 
             let html = '';
-            sortedKeys.forEach(key => {
-                let groupFolders = groups[key];
-                let groupTitle = 'อื่นๆ';
-                if (key !== 'อื่นๆ') {
-                    let [year, month] = key.split('-');
-                    let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
-                    let yLabel = year.startsWith('25') ? `พ.ศ. ${year}` : year;
-                    groupTitle = `${mName} ${yLabel}`;
-                }
+            filtered.forEach(folder => {
                 html += `
-                    <div class="col-12">
-                        <div class="text-success fw-bold mb-2 mt-2" style="font-size: 0.9rem;">
-                            <i class="fa-solid fa-calendar-days me-1"></i> ${groupTitle}
+                    <div class="col-auto">
+                        <div class="px-3 py-2 rounded-2 border border-secondary bg-dark bg-opacity-75 d-flex align-items-center gap-2 shadow-sm" 
+                             style="cursor: pointer; transition: all 0.2s; font-size: 0.85rem;" 
+                             onmouseover="this.style.borderColor='#198754'; this.style.backgroundColor='#19875422';" 
+                             onmouseout="this.style.borderColor='#6c757d'; this.style.backgroundColor='rgba(15, 23, 42, 0.75)';"
+                             onclick="openCSModal('${folder.id}', '${folder.name}')">
+                            <i class="fa-solid fa-folder text-success"></i>
+                            <span class="text-white fw-medium">${folder.name}</span>
                         </div>
-                        <div class="row g-2">
+                    </div>
                 `;
-                groupFolders.forEach(folder => {
-                    html += `
-                        <div class="col-md-4 col-sm-6">
-                            <div class="p-3 rounded-3 border border-secondary bg-dark bg-opacity-50 h-100 d-flex align-items-center justify-content-between shadow-sm" 
-                                 style="cursor: pointer; transition: all 0.2s;" 
-                                 onmouseover="this.style.borderColor='#198754'; this.style.transform='translateY(-2px)';" 
-                                 onmouseout="this.style.borderColor='#6c757d'; this.style.transform='translateY(0)';"
-                                 onclick="openCSModal('${folder.id}', '${folder.name}')">
-                                <div class="d-flex align-items-center gap-3 overflow-hidden">
-                                    <div class="bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
-                                        <i class="fa-solid fa-folder"></i>
-                                    </div>
-                                    <div class="text-truncate">
-                                        <div class="text-white fw-medium text-truncate" style="font-size: 0.85rem;">${folder.name}</div>
-                                        <small class="text-muted" style="font-size: 0.75rem;">คลิกเพื่อดูไฟล์รายงาน</small>
-                                    </div>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-muted small ms-2"></i>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += `</div></div>`;
             });
             container.innerHTML = html;
         }
@@ -668,9 +665,9 @@
                             <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
                                 <div class="d-flex align-items-center gap-2 text-truncate me-2">
                                     <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
-                                    <span class="text-light text-truncate" style="font-size: 0.9rem;">${file.name}</span>
+                                    <span class="text-light text-truncate" style="font-size: 0.85rem;">${file.name}</span>
                                 </div>
-                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 rounded-pill" style="font-size: 0.8rem;">
+                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 py-1 rounded-pill" style="font-size: 0.75rem;">
                                     <i class="fa-solid fa-download me-1"></i> เปิดดู / ดาวน์โหลด
                                 </a>
                             </div>
@@ -680,22 +677,19 @@
                 }
             } catch (err) {
                 document.getElementById('csModalLoading').style.display = 'none';
-                document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
+                document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center small">เกิดข้อผิดพลาด: ${err.message}</div>`;
             }
         }
 
-        document.getElementById('csSearchInput').addEventListener('input', function() {
-            renderCSGroups(allCSFolders);
-        });
+        // Event สำหรับตัวกรอง
+        document.getElementById('csSearchInput').addEventListener('input', () => renderCSGroups(allCSFolders));
+        document.getElementById('csMonthFilter').addEventListener('change', () => renderCSGroups(allCSFolders));
 
         window.onload = () => {
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
             
-            // 1. โหลดข้อมูลแดชบอร์ด RO หลัก
             loadData();
-            
-            // 2. โหลดโฟลเดอร์ผลเพาะเชื้อ C/S ผ่าน Web App URL แบบไม่บล็อกหน้าจอ
             setTimeout(() => { loadCSFoldersViaFetch(); }, 500);
 
             window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
