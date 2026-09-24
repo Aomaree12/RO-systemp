@@ -561,9 +561,9 @@
                     <td class="${recClass}">${row.rec || "-"}</td>
                     <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal(${row.globalIndex})" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal(${row.globalIndex})" title="แก้ไข"><i class="fas fa-edit"></i></button>
-                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal(${row.globalIndex})" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal(${row.globalIndex})" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -571,10 +571,12 @@
         }
 
         // ==========================================
-        // ฟังก์ชันแสดง Modal แบบตารางรายละเอียดทุกคอลัมน์
+        // ฟังก์ชัน Modal แสดงข้อมูลและแก้ไข
         // ==========================================
         function openDetailModal(index) {
-            let rowObj = globalData[index].rawObj;
+            let item = globalData.find(d => d.globalIndex === index);
+            if (!item) return;
+            let rowObj = item.rawObj;
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-eye me-2"></i>รายละเอียดข้อมูลการตรวจเช็ค`;
             
@@ -586,11 +588,15 @@
             
             container.innerHTML = html;
             document.getElementById('btnSaveEdit').style.display = 'none';
-            new bootstrap.Modal(document.getElementById('roDetailModal')).show();
+            
+            let myModal = new bootstrap.Modal(document.getElementById('roDetailModal'));
+            myModal.show();
         }
 
         function openEditModal(index) {
-            let rowObj = globalData[index].rawObj;
+            let item = globalData.find(d => d.globalIndex === index);
+            if (!item) return;
+            let rowObj = item.rawObj;
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-edit me-2"></i>แก้ไขข้อมูลการตรวจเช็คระบบ RO`;
             document.getElementById('edit_index').value = index;
@@ -608,15 +614,19 @@
             html += `</div>`;
             container.innerHTML = html;
             document.getElementById('btnSaveEdit').style.display = 'block';
-            new bootstrap.Modal(document.getElementById('roDetailModal')).show();
+            
+            let myModal = new bootstrap.Modal(document.getElementById('roDetailModal'));
+            myModal.show();
         }
 
         async function saveEditedRecord() {
             let index = document.getElementById('edit_index').value;
-            let originalRow = globalData[index].rawObj;
+            let item = globalData.find(d => d.globalIndex == index);
+            if (!item) return;
+            let originalRow = item.rawObj;
             let inputs = document.querySelectorAll('.edit-input');
             
-            let updatedObj = { timestamp_raw: originalRow['ประทับเวลา'] || originalRow['Timestamp'] || globalData[index].timestamp_raw };
+            let updatedObj = { timestamp_raw: originalRow['ประทับเวลา'] || originalRow['Timestamp'] || item.timestamp_raw };
             
             inputs.forEach(input => {
                 let key = input.getAttribute('data-key');
@@ -656,7 +666,9 @@
                 const result = await res.json();
                 if(result.status === 'success') {
                     Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกการแก้ไขเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
-                    bootstrap.Modal.getInstance(document.getElementById('roDetailModal')).hide();
+                    let modalEl = document.getElementById('roDetailModal');
+                    let modalObj = bootstrap.Modal.getInstance(modalEl);
+                    if(modalObj) modalObj.hide();
                     loadData();
                 } else {
                     Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
