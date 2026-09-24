@@ -730,13 +730,21 @@
         }
 
         // ==========================================
-        // ดึงโฟลเดอร์ผลเพาะเชื้อ C/S
+        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S แบบปลอดภัย (ไม่พัง)
         // ==========================================
         async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
             try {
                 const response = await fetch(CS_SCRIPT_URL + "?action=getFolders");
-                const folders = await response.json();
+                const text = await response.text();
+                
+                let folders;
+                try {
+                    folders = JSON.parse(text);
+                } catch (parseErr) {
+                    throw new Error("ระบบ C/S ส่งข้อมูลกลับมาไม่ถูกต้อง (อาจติดสิทธิ์หรือ Error HTML)");
+                }
+
                 document.getElementById('csLoader').style.display = 'none';
                 
                 if(folders && folders.error) throw new Error(folders.error);
@@ -746,7 +754,7 @@
                 renderCSGroups(allCSFolders);
             } catch (err) {
                 document.getElementById('csLoader').style.display = 'none';
-                document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center small">เกิดข้อผิดพลาด: ${err.message}</div>`;
+                document.getElementById('csFolderGroups').innerHTML = `<div class="text-muted text-center small">ไม่สามารถดึงโฟลเดอร์ผลเพาะเชื้อได้ (${err.message})</div>`;
             }
         }
 
@@ -826,7 +834,14 @@
 
             try {
                 const response = await fetch(`${CS_SCRIPT_URL}?action=getFiles&folderId=${folderId}`);
-                const files = await response.json();
+                const text = await response.text();
+                let files;
+                try {
+                    files = JSON.parse(text);
+                } catch(e) {
+                    throw new Error("ไม่สามารถอ่านข้อมูลไฟล์ได้");
+                }
+
                 document.getElementById('csModalLoading').style.display = 'none';
                 
                 const fileListEl = document.getElementById('csFileList');
