@@ -299,7 +299,7 @@
                 <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
                     <form id="roEditForm">
                         <input type="hidden" id="edit_index">
-                        <div class="row g-3" id="roFormFieldsContainer"></div>
+                        <div id="roFormFieldsContainer"></div>
                     </form>
                 </div>
                 <div class="modal-footer border-top border-secondary py-2">
@@ -571,22 +571,19 @@
         }
 
         // ==========================================
-        // ฟังก์ชันจัดการ Modal ดู / แก้ไข / ลบ
+        // ฟังก์ชันแสดง Modal แบบตารางรายละเอียดทุกคอลัมน์
         // ==========================================
         function openDetailModal(index) {
             let rowObj = globalData[index].rawObj;
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-eye me-2"></i>รายละเอียดข้อมูลการตรวจเช็ค`;
             
-            let html = '';
+            let html = `<div class="table-responsive"><table class="table table-dark table-striped table-bordered align-middle m-0" style="font-size: 0.85rem;"><tbody>`;
             for (let key in rowObj) {
-                html += `
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary small mb-1">${key}</label>
-                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" value="${rowObj[key]}" readonly>
-                    </div>
-                `;
+                html += `<tr><th class="text-info" style="width: 40%;">${key}</th><td class="text-light">${rowObj[key] !== "" ? rowObj[key] : "-"}</td></tr>`;
             }
+            html += `</tbody></table></div>`;
+            
             container.innerHTML = html;
             document.getElementById('btnSaveEdit').style.display = 'none';
             new bootstrap.Modal(document.getElementById('roDetailModal')).show();
@@ -598,7 +595,7 @@
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-edit me-2"></i>แก้ไขข้อมูลการตรวจเช็คระบบ RO`;
             document.getElementById('edit_index').value = index;
 
-            let html = '';
+            let html = `<div class="row g-2">`;
             for (let key in rowObj) {
                 let isReadonly = (key.toLowerCase().includes('ประทับเวลา') || key.toLowerCase().includes('timestamp'));
                 html += `
@@ -608,6 +605,7 @@
                     </div>
                 `;
             }
+            html += `</div>`;
             container.innerHTML = html;
             document.getElementById('btnSaveEdit').style.display = 'block';
             new bootstrap.Modal(document.getElementById('roDetailModal')).show();
