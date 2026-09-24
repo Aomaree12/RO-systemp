@@ -4,42 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามน้ำบริสุทธิ์ RO - สถาบันบำราศนราดูร</title>
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <!-- Flatpickr (ระบบปฏิทิน) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+    <!-- Marked.js สำหรับแปลง Markdown เป็น HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .card-custom { background-color: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 20px; }
         .header-title { background: linear-gradient(90deg, #1e293b, #0f172a); border-radius: 20px; border-left: 5px solid #38bdf8; }
-        
         .digital-value { font-size: 2rem; font-weight: bold; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
         .digital-sm { font-size: 1.5rem; font-weight: bold; color: #f8fafc; }
         .digital-xl { font-size: 2.5rem; font-weight: bold; }
         
-        /* 3D Thermometer */
         .thermo-container { display: flex; align-items: center; justify-content: center; gap: 15px; }
         .thermo-glass { width: 25px; height: 100px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%); border: 2px solid #475569; border-radius: 15px; position: relative; box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.8); }
         .thermo-fluid { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, #3b82f6, #ef4444); border-radius: 10px; transition: height 1s; }
         .thermo-bulb { width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb); border-radius: 50%; position: absolute; bottom: -20px; left: -7px; border: 2px solid #475569; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5); }
         
-        /* 3D Rotameter */
         .rotameter-wrapper { display: flex; align-items: center; justify-content: center; position: relative; }
         .rotameter-scale { display: flex; flex-direction: column; justify-content: space-between; height: 200px; font-size: 0.75rem; color: #94a3b8; text-align: right; padding-right: 4px; font-weight: bold; }
-        .rotameter { 
-            width: 45px; height: 200px; 
-            background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.05) 100%);
-            border: 2px solid #475569; border-radius: 20px; position: relative; display: flex; justify-content: center;
-            box-shadow: inset 0px 0px 15px rgba(0,0,0,0.9), 3px 3px 10px rgba(0,0,0,0.5);
-        }
+        .rotameter { width: 45px; height: 200px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.05) 100%); border: 2px solid #475569; border-radius: 20px; position: relative; display: flex; justify-content: center; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.9), 3px 3px 10px rgba(0,0,0,0.5); }
         .rotameter::after { content: ''; position: absolute; top: 2%; left: 15%; width: 15%; height: 96%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); border-radius: 20px; pointer-events: none; }
         .rotameter::before { content: ''; position: absolute; left: 10px; height: 100%; width: 5px; border-left: 1px dashed #64748b; }
         .float-bob { width: 26px; height: 26px; border-radius: 50%; position: absolute; z-index: 2; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.6); transition: bottom 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -49,16 +39,16 @@
         .table-dark-custom { background-color: #0f172a; color: #cbd5e1; border-color: #334155; }
         .table-dark-custom th { background-color: #1e293b; color: #38bdf8; position: sticky; top: 0; z-index: 10;}
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-
-        /* ปรับแต่งปฏิทิน */
         .flatpickr-calendar { font-family: 'Segoe UI', sans-serif; }
         .flatpickr-day.has-data { color: #10b981 !important; font-weight: bold; }
         .flatpickr-day.no-data-past { color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1); }
+        
+        .analysis-box { background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed #475569; padding: 15px; min-height: 120px; }
+        .ai-result-box { display: none; background: rgba(56, 189, 248, 0.05); border: 1px solid #38bdf8; border-radius: 15px; padding: 15px; margin-top: 15px; }
     </style>
 </head>
 <body class="p-3 p-md-4">
 
-    <!-- Loading Screen -->
     <div id="loadingOverlay">
         <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
         <h4 class="mt-3 text-info">กำลังโหลดข้อมูล...</h4>
@@ -75,7 +65,6 @@
                 <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
                     <div class="input-group" style="width: 280px;">
                         <span class="input-group-text bg-dark text-info border-secondary"><i class="fas fa-calendar-alt"></i></span>
-                        <!-- ช่อง Input ปฏิทิน -->
                         <input type="text" id="dateFilter" class="form-control bg-dark text-white border-secondary" placeholder="คลิกเลือกวันที่...">
                     </div>
                     <div class="text-lg-end min-w-150">
@@ -87,7 +76,28 @@
         </div>
     </div>
 
-    <!-- โซนที่ 1: คุณภาพน้ำ (Water Quality) -->
+    <!-- ปลั๊กอินวิเคราะห์ (TRT Rules + AI) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card-custom border-info">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary">
+                    <h5 class="text-info m-0"><i class="fas fa-robot me-2"></i>ปลั๊กอินวิเคราะห์ระบบน้ำ (TRT Analysis)</h5>
+                    <button class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="callAI()"><i class="fas fa-magic me-1"></i> ให้ AI วิเคราะห์เชิงลึก</button>
+                </div>
+                
+                <!-- ผลวิเคราะห์ Rule-based อัตโนมัติ -->
+                <div id="analysisResult" class="analysis-box"></div>
+                
+                <!-- ผลวิเคราะห์จาก API (ซ่อนไว้จนกว่าจะกดปุ่ม) -->
+                <div id="aiResultBox" class="ai-result-box">
+                    <h6 class="text-info fw-bold mb-2"><i class="fas fa-brain me-2"></i>ความเห็นจาก AI (Deep Analysis)</h6>
+                    <div id="aiText" style="font-size: 0.95rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- โซน 1-3 ตามเดิม (แสดงตัวเลข, เข็มไมล์, แท่งแก้ว) -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">ORP น้ำเข้า</small><div class="digital-sm text-warning mt-1"><span id="valOrp">0</span> <span class="fs-6">mV</span></div></div></div>
         <div class="col-6 col-md-3 col-lg-2"><div class="card-custom text-center h-100"><small class="text-secondary">Chlorine น้ำดิบ {0.3-0.5}</small><div class="digital-sm text-warning mt-1"><span id="valCl">-</span> <span class="fs-6">ppm</span></div></div></div>
@@ -104,7 +114,6 @@
         </div>
     </div>
 
-    <!-- โซนที่ 2: แรงดันระบบก่อนกรอง -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
@@ -121,7 +130,6 @@
         </div>
     </div>
 
-    <!-- โซนที่ 3: ระบบ RO, อัตราการไหล และ ประสิทธิภาพ -->
     <div class="row g-3 mb-4">
         <div class="col-lg-5">
             <div class="card-custom h-100 d-flex flex-column">
@@ -170,7 +178,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 4: สถานะ & กราฟ -->
+    <!-- โซน 4: กราฟ และ สถานะ -->
     <div class="row g-3 mb-4">
         <div class="col-lg-4">
             <div class="card-custom h-100">
@@ -197,7 +205,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 5: ตารางย้อนหลัง -->
+    <!-- โซน 5: ตารางย้อนหลัง -->
     <div class="row g-3">
         <div class="col-12">
             <div class="card-custom">
@@ -209,7 +217,7 @@
                                 <th>วัน-เวลา</th>
                                 <th>Cond RO</th>
                                 <th>% Rejection</th>
-                                <th>Temp (°C)</th>
+                                <th>% Recovery {45-55%}</th>
                                 <th>Flow (Perm/Conc)</th>
                                 <th>ผู้ตรวจ</th>
                             </tr>
@@ -222,9 +230,11 @@
     </div>
 
     <script>
+        // URL ของ Google Script ของคุณ (ไม่ต้องแก้)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         
         let globalData = [];
+        let currentDayData = null; // เก็บข้อมูลวันปัจจุบันไว้ใช้กับปุ่ม AI
         let availableDates = [];
         let gauges = {};
         let monthlyChart;
@@ -233,18 +243,7 @@
             let colorStops = isRO ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']];
             let chart = echarts.init(document.getElementById(elementId));
             chart.setOption({
-                series: [{
-                    type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: maxVal, splitNumber: 4,
-                    itemStyle: { color: '#ef4444' },
-                    progress: { show: true, roundCap: true, width: 8 },
-                    pointer: { length: '65%', width: 5, itemStyle: { color: '#ef4444' } },
-                    axisLine: { lineStyle: { width: 8, color: colorStops } },
-                    axisTick: { distance: -10, length: 4, lineStyle: { color: '#fff', width: 1 } },
-                    splitLine: { distance: -15, length: 8, lineStyle: { color: '#fff', width: 2 } },
-                    axisLabel: { color: '#94a3b8', distance: 15, fontSize: 9 },
-                    detail: { valueAnimation: true, formatter: '{value}', color: '#fff', fontSize: 14, offsetCenter: [0, '60%'] },
-                    data: [{ value: 0 }]
-                }]
+                series: [{ type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: maxVal, splitNumber: 4, itemStyle: { color: '#ef4444' }, progress: { show: true, roundCap: true, width: 8 }, pointer: { length: '65%', width: 5, itemStyle: { color: '#ef4444' } }, axisLine: { lineStyle: { width: 8, color: colorStops } }, axisTick: { distance: -10, length: 4, lineStyle: { color: '#fff', width: 1 } }, splitLine: { distance: -15, length: 8, lineStyle: { color: '#fff', width: 2 } }, axisLabel: { color: '#94a3b8', distance: 15, fontSize: 9 }, detail: { valueAnimation: true, formatter: '{value}', color: '#fff', fontSize: 14, offsetCenter: [0, '60%'] }, data: [{ value: 0 }] }]
             });
             gauges[elementId] = chart;
         }
@@ -255,51 +254,20 @@
             return isNaN(n) ? 0 : n;
         }
 
-        // -------------------------------------------------------------
-        // ระบบแกะวันที่ใหม่ล่าสุด (แก้ปัญหา รูปแบบ 24/09/2026, 08:34:05)
-        // -------------------------------------------------------------
         function parseRobustDate(rawStr) {
             let str = String(rawStr || "").trim();
             if (!str) return null;
-
-            // ตัวอย่าง: "24/09/2026, 08:34:05" -> แยกช่องว่าง หรือ comma
             let parts = str.split(/[\s,]+/); 
             let datePart = parts[0]; 
             let timePart = parts[1] || "00:00"; 
-
-            // ผ่าวันที่ด้วยเครื่องหมาย / หรือ -
             let dParts = datePart.split('/');
-            if (dParts.length !== 3) {
-                dParts = datePart.split('-'); 
-            }
-
+            if (dParts.length !== 3) dParts = datePart.split('-');
             if (dParts.length === 3) {
-                let day = dParts[0];
-                let month = dParts[1];
-                let year = dParts[2];
-
-                // ถ้าปีอยู่ข้างหน้า (YYYY-MM-DD)
-                if (year.length < 4 && dParts[0].length === 4) {
-                    year = dParts[0];
-                    month = dParts[1];
-                    day = dParts[2];
-                }
-
-                let y = String(year);
-                let m = String(month).padStart(2, '0');
-                let d = String(day).padStart(2, '0');
-
-                // จัดการเวลา
-                let tParts = timePart.split(':');
-                let h = String(tParts[0] || '0').padStart(2, '0');
-                let min = String(tParts[1] || '0').padStart(2, '0');
-
-                return {
-                    dateStr: `${y}-${m}-${d}`,         // Format ให้ระบบเข้าใจ (YYYY-MM-DD)
-                    monthStr: `${y}-${m}`,             // เอาไว้หากราฟรายเดือน
-                    dayNum: parseInt(d, 10),           // แสดงจุดแกน X บนกราฟ
-                    timeDisplay: `${d}/${m}/${y} ${h}:${min}` // โชว์ในตารางให้คนอ่าน (ไทย)
-                };
+                let day = dParts[0]; let month = dParts[1]; let year = dParts[2];
+                if (year.length < 4 && dParts[0].length === 4) { year = dParts[0]; month = dParts[1]; day = dParts[2]; }
+                let y = String(year); let m = String(month).padStart(2, '0'); let d = String(day).padStart(2, '0');
+                let tParts = timePart.split(':'); let h = String(tParts[0] || '0').padStart(2, '0'); let min = String(tParts[1] || '0').padStart(2, '0');
+                return { dateStr: `${y}-${m}-${d}`, monthStr: `${y}-${m}`, dayNum: parseInt(d, 10), timeDisplay: `${d}/${m}/${y} ${h}:${min}` };
             }
             return null;
         }
@@ -314,7 +282,7 @@
                     for (let k in row) {
                         let lk = k.toLowerCase().replace(/\s+/g, ' '); 
                         let val = row[k];
-                        if(lk.includes('ประทับเวลา') || lk.includes('timestamp')) mapped.timestamp_raw = val;
+                        if(lk.includes('ประทับเวลา')) mapped.timestamp_raw = val;
                         else if(lk === 'orp') mapped.orp = extractNum(val);
                         else if(lk.includes('chlorine ในน้ำดิบ')) mapped.cl_raw = val;
                         else if(lk.includes('feed pump')) mapped.press_feed = extractNum(val);
@@ -333,7 +301,7 @@
                         else if(lk.includes('cartridge filter')) mapped.press_cart = extractNum(val);
                         else if(lk.includes('raw cond')) mapped.cond_raw = extractNum(val);
                         else if(lk.includes('temp')) mapped.temp = extractNum(val);
-                        else if(lk.includes('ro pressure') || lk.includes('pump')) mapped.press_ro_pump = extractNum(val);
+                        else if(lk.includes('ro pressure')) mapped.press_ro_pump = extractNum(val);
                         else if(lk.includes('concentrate pressure')) mapped.press_conc = extractNum(val);
                         else if(lk.includes('permeate pressure')) mapped.press_perm = extractNum(val);
                         else if(lk.includes('permeate flow')) mapped.flow_perm = extractNum(val);
@@ -341,80 +309,108 @@
                         else if(lk.includes('cond') && lk.includes('ro')) mapped.cond_ro = extractNum(val);
                         else if(lk.includes('rejection')) mapped.rej = extractNum(val);
                         else if(lk.includes('recovery')) mapped.rec = extractNum(val);
-                        else if(lk.includes('ชื่อ-สกุล') || lk.includes('name')) mapped.operator = val;
+                        else if(lk.includes('ชื่อ-สกุล')) mapped.operator = val;
                     }
-
-                    // เรียกใช้ฟังก์ชันแปลวันที่ใหม่ที่แม่นยำกว่า
                     let dateInfo = parseRobustDate(mapped.timestamp_raw);
                     if(dateInfo) {
-                        mapped.dateStr = dateInfo.dateStr;
-                        mapped.monthStr = dateInfo.monthStr;
-                        mapped.dayNum = dateInfo.dayNum;
-                        mapped.timeDisplay = dateInfo.timeDisplay;
-                    } else {
-                        mapped.dateStr = ""; 
-                    }
+                        mapped.dateStr = dateInfo.dateStr; mapped.monthStr = dateInfo.monthStr;
+                        mapped.dayNum = dateInfo.dayNum; mapped.timeDisplay = dateInfo.timeDisplay;
+                    } else { mapped.dateStr = ""; }
                     return mapped;
                 });
                 
-                // คัดเฉพาะแถวที่มีวันที่
                 globalData = globalData.filter(d => d.dateStr !== "");
                 
                 if (globalData.length > 0) {
-                    // เก็บรวบรวมวันที่ทั้งหมดที่มีข้อมูล (ห้ามซ้ำ)
                     availableDates = [...new Set(globalData.map(d => d.dateStr))];
-                    availableDates.sort((a,b) => a.localeCompare(b)); // เรียงจากเก่าไปใหม่
-                    
+                    availableDates.sort((a,b) => a.localeCompare(b));
                     initCalendar();
                 }
-            } catch (e) {
-                console.error(e);
-                alert("พบปัญหาในการดึงข้อมูล โปรดรีเฟรชหน้าจอ");
-            } finally {
-                document.getElementById('loadingOverlay').style.display = 'none';
-            }
+            } catch (e) { console.error(e); alert("พบปัญหาในการดึงข้อมูล โปรดรีเฟรชหน้าจอ"); } 
+            finally { document.getElementById('loadingOverlay').style.display = 'none'; }
         }
 
         function initCalendar() {
             flatpickr("#dateFilter", {
-                locale: "th",
-                dateFormat: "Y-m-d", // Format จริงที่ใช้ทำงาน
-                altInput: true, 
-                altFormat: "d/m/Y",  // Format ที่แสดงให้คนอ่านบนช่องปฏิทิน
-                enable: availableDates, // บังคับให้จิ้มได้เฉพาะวันที่มีข้อมูล
-                defaultDate: availableDates[availableDates.length - 1], // ตั้งค่าเริ่มต้นเป็น "วันล่าสุดที่มีในระบบ"
-                onChange: function(selectedDates, dateStr, instance) {
-                    if(dateStr) applyFilter(dateStr);
-                },
+                locale: "th", dateFormat: "Y-m-d", altInput: true, altFormat: "d/m/Y", enable: availableDates,
+                defaultDate: availableDates[availableDates.length - 1],
+                onChange: function(selectedDates, dateStr) { if(dateStr) applyFilter(dateStr); },
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     let dateStrFormat = flatpickr.formatDate(dayElem.dateObj, "Y-m-d");
-                    let today = new Date();
-                    today.setHours(0,0,0,0);
-                    
-                    if (availableDates.includes(dateStrFormat)) {
-                        dayElem.classList.add('has-data'); // วันที่มีข้อมูล = เขียว
-                    } else if (dayElem.dateObj < today) {
-                        dayElem.classList.add('no-data-past'); // วันที่ในอดีตที่ลืมลงข้อมูล = แดง
-                    }
+                    let today = new Date(); today.setHours(0,0,0,0);
+                    if (availableDates.includes(dateStrFormat)) { dayElem.classList.add('has-data'); } 
+                    else if (dayElem.dateObj < today) { dayElem.classList.add('no-data-past'); }
                 }
             });
-            // โหลดข้อมูลขึ้นหน้าจอ
             applyFilter(availableDates[availableDates.length - 1]);
+        }
+
+        // ระบบวิเคราะห์ Rule-based เดิม
+        function analyzeWaterSystem(data) {
+            let alerts = []; let normals = [];
+            let condRO = parseFloat(data.cond_ro) || 0;
+            if (condRO >= 10) alerts.push(`<b>Cond RO สูงเกินเกณฑ์ (${condRO}):</b> ตรวจสอบการอุดตันของ RO Membrane`);
+            else normals.push(`Conductivity RO ผ่านเกณฑ์ TRT`);
+
+            let rec = parseFloat(data.rec) || 0;
+            if (rec > 0 && rec < 45) alerts.push(`<b>% Recovery ต่ำ (${rec}%):</b> อาจเกิดจาก Membrane ตัน`);
+            else if (rec > 55) alerts.push(`<b>% Recovery สูง (${rec}%):</b> ระบบทำงานหนัก ระวังอายุเมมเบรนสั้นลง`);
+            else if (rec >= 45 && rec <= 55) normals.push(`% Recovery อยู่ในเกณฑ์มาตรฐาน (${rec}%)`);
+
+            let html = "";
+            if (alerts.length > 0) {
+                html += `<h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle"></i> ข้อควรระวัง:</h6><ul class="text-warning mb-3" style="font-size: 0.95rem;">`;
+                alerts.forEach(a => html += `<li>${a}</li>`); html += `</ul>`;
+            } else {
+                html += `<div class="alert alert-success bg-transparent border-success text-success p-2 mb-3"><i class="fas fa-check-circle"></i> ผลการตรวจเบื้องต้น: ระบบสมบูรณ์ปกติ</div>`;
+            }
+            document.getElementById('analysisResult').innerHTML = html;
+        }
+
+        // ฟังก์ชันเรียก API AI ไปหลังบ้าน (POST)
+        async function callAI() {
+            if(!currentDayData) return;
+            
+            let aiBox = document.getElementById('aiResultBox');
+            let aiText = document.getElementById('aiText');
+            
+            aiBox.style.display = 'block';
+            aiText.innerHTML = `<span class="spinner-border spinner-border-sm text-info me-2"></span> กำลังส่งข้อมูลให้ AI วิเคราะห์...`;
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'analyze', data: currentDayData })
+                });
+                
+                const responseData = await res.json();
+                if(responseData.result) {
+                    // ใช้ Marked.js เพื่อแสดงตัวหนา/Bullet ได้สวยงาม
+                    aiText.innerHTML = marked.parse(responseData.result);
+                } else {
+                    aiText.innerHTML = `<span class="text-danger">เกิดข้อผิดพลาด: ${responseData.error}</span>`;
+                }
+            } catch(e) {
+                aiText.innerHTML = `<span class="text-danger">การเชื่อมต่อล้มเหลว โปรดลองอีกครั้ง</span>`;
+            }
         }
 
         function applyFilter(selectedDate) {
             if(!selectedDate) return;
             
-            // ข้อมูลสำหรับเกจวัด
             let targetDataList = globalData.filter(d => d.dateStr === selectedDate);
             if(targetDataList.length > 0) {
-                updateDashboard(targetDataList[targetDataList.length - 1]); 
+                currentDayData = targetDataList[targetDataList.length - 1]; // เก็บไว้ให้ AI
+                updateDashboard(currentDayData); 
+                analyzeWaterSystem(currentDayData);
+                
+                // ซ่อนกล่อง AI ทุกครั้งที่เปลี่ยนวันใหม่
+                document.getElementById('aiResultBox').style.display = 'none';
             }
 
-            // ข้อมูลกราฟและตารางรายเดือน
             let selectedMonth = selectedDate.substring(0, 7); 
             let monthData = globalData.filter(d => d.monthStr === selectedMonth);
-            
             renderChart(monthData);
             updateHistoryTable(monthData);
         }
@@ -426,15 +422,12 @@
             document.getElementById('valCondRaw').innerText = data.cond_raw || 0;
             document.getElementById('valCondRo').innerText = data.cond_ro || 0;
             document.getElementById('valTemp').innerText = data.temp || 0;
-            
             document.getElementById('valPermFlow').innerText = data.flow_perm || 0;
             document.getElementById('valConcFlow').innerText = data.flow_conc || 0;
             document.getElementById('valRej').innerText = data.rej || "0.00"; 
             document.getElementById('valRec').innerText = data.rec || "0.00"; 
 
-            let perm = data.flow_perm || 0;
-            let conc = data.flow_conc || 0;
-            let temp = data.temp || 0;
+            let perm = data.flow_perm || 0; let conc = data.flow_conc || 0; let temp = data.temp || 0;
             document.getElementById('bobPermeate').style.bottom = (perm / 40 * 100) + "%";
             document.getElementById('bobReject').style.bottom = (conc / 40 * 100) + "%";
             document.getElementById('thermoFluid').style.height = (temp / 40 * 100) + "%";
@@ -445,14 +438,9 @@
                 else if(val === "-" || val === "" || val === undefined) { el.className = "text-secondary"; el.innerText = "-"; }
                 else { el.className = "badge bg-warning text-dark"; el.innerText = val; }
             };
-            setBadge('valSandClk', data.clk_sand);
-            setBadge('valC1Clk', data.clk_c1);
-            setBadge('valC1Cl', data.cl_c1);
-            setBadge('valC2Clk', data.clk_c2);
-            setBadge('valC2Cl', data.cl_c2);
-            setBadge('valSoftClk', data.clk_soft);
-            setBadge('valAqua', data.aqua);
-            document.getElementById('valBrine').innerText = data.brine || "-";
+            setBadge('valSandClk', data.clk_sand); setBadge('valC1Clk', data.clk_c1); setBadge('valC1Cl', data.cl_c1);
+            setBadge('valC2Clk', data.clk_c2); setBadge('valC2Cl', data.cl_c2); setBadge('valSoftClk', data.clk_soft);
+            setBadge('valAqua', data.aqua); document.getElementById('valBrine').innerText = data.brine || "-";
 
             gauges['gFeed'].setOption({ series: [{ data: [{ value: data.press_feed || 0 }] }] });
             gauges['gSand'].setOption({ series: [{ data: [{ value: data.press_sand || 0 }] }] });
@@ -467,10 +455,8 @@
 
         function renderChart(monthData) {
             if(!monthlyChart) monthlyChart = echarts.init(document.getElementById('monthlyChart'));
-            
             let dailyMap = {};
             monthData.forEach(d => { dailyMap[d.dateStr] = d; });
-            
             let sortedDates = Object.keys(dailyMap).sort((a,b) => a.localeCompare(b));
             let datesLabels = sortedDates.map(d => dailyMap[d].dayNum);
             let condData = sortedDates.map(d => dailyMap[d].cond_ro || 0);
@@ -480,11 +466,7 @@
                 grid: { left: '3%', right: '4%', bottom: '5%', top: '10%', containLabel: true },
                 xAxis: { type: 'category', boundaryGap: false, data: datesLabels, axisLabel: { color: '#94a3b8' } },
                 yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#334155' } } },
-                series: [{
-                    name: 'Cond RO', type: 'line', smooth: true, itemStyle: { color: '#38bdf8' },
-                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.5)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) },
-                    data: condData
-                }]
+                series: [{ name: 'Cond RO', type: 'line', smooth: true, itemStyle: { color: '#38bdf8' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.5)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) }, data: condData }]
             });
         }
 
@@ -496,11 +478,14 @@
             sorted.forEach(row => {
                 let tr = document.createElement('tr');
                 let condClass = (row.cond_ro && row.cond_ro < 10) ? 'text-success' : 'text-danger';
+                let recVal = parseFloat(row.rec) || 0;
+                let recClass = (recVal >= 45 && recVal <= 55) ? 'text-info' : 'text-warning fw-bold';
+
                 tr.innerHTML = `
                     <td><small class="text-secondary">${row.timeDisplay || '-'}</small></td>
                     <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
                     <td class="text-info">${row.rej || "-"}</td>
-                    <td>${row.temp || 0}</td>
+                    <td class="${recClass}">${row.rec || "-"}</td>
                     <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
                     <td>${row.operator || '-'}</td>
                 `;
