@@ -17,44 +17,70 @@
     <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
     <!-- Marked.js สำหรับแปลง Markdown เป็น HTML -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- SweetAlert2 สำหรับแจ้งเตือนสวยๆ -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
-        .card-custom { background-color: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 20px; }
-        .header-title { background: linear-gradient(90deg, #1e293b, #0f172a); border-radius: 20px; border-left: 5px solid #38bdf8; }
-        
-        .digital-value { font-size: 2rem; font-weight: bold; color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
-        .digital-sm { font-size: 1.5rem; font-weight: bold; color: #f8fafc; }
+        body { background-color: 
+#0f172a; color: 
+#e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+        .card-custom { background-color: 
+#1e293b; border-radius: 20px; border: 1px solid 
+#334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 20px; }
+        .header-title { background: linear-gradient(90deg, 
+#1e293b, 
+#0f172a); border-radius: 20px; border-left: 5px solid 
+#38bdf8; }
+
+        .digital-value { font-size: 2rem; font-weight: bold; color: 
+#38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        .digital-sm { font-size: 1.5rem; font-weight: bold; color: 
+#f8fafc; }
         .digital-xl { font-size: 2.5rem; font-weight: bold; }
-        
+
         /* 3D Thermometer */
         .thermo-container { display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .thermo-glass { width: 25px; height: 100px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%); border: 2px solid #475569; border-radius: 15px; position: relative; box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.8); }
-        .thermo-fluid { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, #3b82f6, #ef4444); border-radius: 10px; transition: height 1s; }
-        .thermo-bulb { width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #60a5fa, #2563eb); border-radius: 50%; position: absolute; bottom: -20px; left: -7px; border: 2px solid #475569; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5); }
-        
+        .thermo-glass { width: 25px; height: 100px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 30%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%); border: 2px solid 
+#475569; border-radius: 15px; position: relative; box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.8); }
+        .thermo-fluid { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, 
+#3b82f6, 
+#ef4444); border-radius: 10px; transition: height 1s; }
+        .thermo-bulb { width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, 
+#60a5fa, 
+#2563eb); border-radius: 50%; position: absolute; bottom: -20px; left: -7px; border: 2px solid 
+#475569; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.5); }
+
         /* 3D Rotameter */
         .rotameter-wrapper { display: flex; align-items: center; justify-content: center; position: relative; }
-        .rotameter-scale { display: flex; flex-direction: column; justify-content: space-between; height: 200px; font-size: 0.75rem; color: #94a3b8; text-align: right; padding-right: 4px; font-weight: bold; }
-        .rotameter { width: 45px; height: 200px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.05) 100%); border: 2px solid #475569; border-radius: 20px; position: relative; display: flex; justify-content: center; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.9), 3px 3px 10px rgba(0,0,0,0.5); }
+        .rotameter-scale { display: flex; flex-direction: column; justify-content: space-between; height: 200px; font-size: 0.75rem; color: 
+#94a3b8; text-align: right; padding-right: 4px; font-weight: bold; }
+        .rotameter { width: 45px; height: 200px; background: linear-gradient(to right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 20%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.05) 100%); border: 2px solid 
+#475569; border-radius: 20px; position: relative; display: flex; justify-content: center; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.9), 3px 3px 10px rgba(0,0,0,0.5); }
         .rotameter::after { content: ''; position: absolute; top: 2%; left: 15%; width: 15%; height: 96%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); border-radius: 20px; pointer-events: none; }
-        .rotameter::before { content: ''; position: absolute; left: 10px; height: 100%; width: 5px; border-left: 1px dashed #64748b; }
+        .rotameter::before { content: ''; position: absolute; left: 10px; height: 100%; width: 5px; border-left: 1px dashed 
+#64748b; }
         .float-bob { width: 26px; height: 26px; border-radius: 50%; position: absolute; z-index: 2; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.6); transition: bottom 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
+
         .gauge-chart { width: 100%; height: 200px; }
-        .col-label { font-size: 0.8rem; color: #94a3b8; margin-top: -10px; text-align: center; display: block; line-height: 1.2;}
-        .table-dark-custom { background-color: #0f172a; color: #cbd5e1; border-color: #334155; }
-        .table-dark-custom th { background-color: #1e293b; color: #38bdf8; position: sticky; top: 0; z-index: 10;}
+        .col-label { font-size: 0.8rem; color: 
+#94a3b8; margin-top: -10px; text-align: center; display: block; line-height: 1.2;}
+        .table-dark-custom { background-color: 
+#0f172a; color: 
+#cbd5e1; border-color: 
+#334155; }
+        .table-dark-custom th { background-color: 
+#1e293b; color: 
+#38bdf8; position: sticky; top: 0; z-index: 10;}
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
         .flatpickr-calendar { font-family: 'Segoe UI', sans-serif; }
-        .flatpickr-day.has-data { color: #10b981 !important; font-weight: bold; }
-        .flatpickr-day.no-data-past { color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1); }
-        
-        .analysis-box { background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed #475569; padding: 15px; min-height: 120px; }
-        .ai-result-box { display: none; background: rgba(56, 189, 248, 0.05); border: 1px solid #38bdf8; border-radius: 15px; padding: 15px; margin-top: 15px; }
+        .flatpickr-day.has-data { color: 
+#10b981 !important; font-weight: bold; }
+        .flatpickr-day.no-data-past { color: 
+#ef4444 !important; background-color: rgba(239, 68, 68, 0.1); }
+
+        .analysis-box { background: rgba(255,255,255,0.02); border-radius: 15px; border: 1px dashed 
+#475569; padding: 15px; min-height: 120px; }
+        .ai-result-box { display: none; background: rgba(56, 189, 248, 0.05); border: 1px solid 
+#38bdf8; border-radius: 15px; padding: 15px; margin-top: 15px; }
     </style>
 </head>
 <body class="p-3 p-md-4">
@@ -150,7 +176,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-4">
             <div class="card-custom h-100">
                 <h6 class="text-secondary mb-3"><i class="fas fa-water me-2"></i>อัตราการไหล (LPM)</h6>
@@ -158,7 +184,9 @@
                     <div class="text-center">
                         <div class="rotameter-wrapper">
                             <div class="rotameter-scale"><span>40-</span><span>30-</span><span>20-</span><span>10-</span><span>0-</span></div>
-                            <div class="rotameter"><div id="bobPermeate" class="float-bob" style="background: radial-gradient(circle at 30% 30%, #38bdf8, #0369a1); bottom: 0%;"></div></div>
+                            <div class="rotameter"><div id="bobPermeate" class="float-bob" style="background: radial-gradient(circle at 30% 30%, 
+#38bdf8, 
+#0369a1); bottom: 0%;"></div></div>
                         </div>
                         <span class="col-label mt-2">Permeate Flow<br>{18-35 LPM}</span>
                         <h4 class="mt-1 text-info"><span id="valPermFlow">0</span></h4>
@@ -166,7 +194,9 @@
                     <div class="text-center">
                         <div class="rotameter-wrapper">
                             <div class="rotameter-scale"><span>40-</span><span>30-</span><span>20-</span><span>10-</span><span>0-</span></div>
-                            <div class="rotameter"><div id="bobReject" class="float-bob" style="background: radial-gradient(circle at 30% 30%, #fcd34d, #b45309); bottom: 0%;"></div></div>
+                            <div class="rotameter"><div id="bobReject" class="float-bob" style="background: radial-gradient(circle at 30% 30%, 
+#fcd34d, 
+#b45309); bottom: 0%;"></div></div>
                         </div>
                         <span class="col-label mt-2">Concentrate Flow<br>{18-35 LPM}</span>
                         <h4 class="mt-1 text-warning"><span id="valConcFlow">0</span></h4>
@@ -214,7 +244,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 5: ตารางย้อนหลัง RO (ปุ่มจัดการ: ดู, แก้ไข, ลบ) -->
+    <!-- โซนที่ 5: ตารางย้อนหลัง RO -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
@@ -228,7 +258,7 @@
                                 <th>% Rejection</th>
                                 <th>% Recovery {45-55%}</th>
                                 <th>Flow (Perm/Conc)</th>
-                                <th>จัดการ</th>
+                                <th>ผู้ตรวจ</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody"></tbody>
@@ -238,83 +268,60 @@
         </div>
     </div>
 
-    <!-- โซนที่ 6: ผลเพาะเชื้อระบบน้ำ C/S -->
+    <!-- โซนที่ 6: โฟลเดอร์ผลเพาะเชื้อ C/S (ดึงข้อมูลผ่าน Web App URL) -->
     <div class="row g-3">
         <div class="col-12">
-            <div class="card-custom border-success p-3 p-md-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="card-custom border-success p-4" style="background: linear-gradient(135deg, 
+#1e293b 0%, 
+#0f172a 100%);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                     <div>
-                        <h5 class="text-white m-0"><i class="fa-solid fa-microscope text-success me-2"></i>ผลเพาะเชื้อระบบน้ำ</h5>
-                        <small class="text-muted">คลิกเลือกโฟลเดอร์เพื่อดูรายงาน PDF รายเดือน</small>
+                        <h5 class="text-white m-0"><i class="fa-solid fa-folder-tree text-success me-2"></i>โฟลเดอร์ผลเพาะเชื้อระบบน้ำ C/S (Water Culture Folders)</h5>
+                        <small class="text-muted">ดึงข้อมูลโฟลเดอร์รายงานประจำเดือนจากระบบอัตโนมัติ</small>
                     </div>
-                    <div class="d-flex gap-2">
-                        <select id="csMonthFilter" class="form-select form-select-sm bg-dark text-white border-secondary rounded-pill px-3" style="width: 180px;">
-                            <option value="all">-- ทุกเดือน/ปี --</option>
-                        </select>
-                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาโฟลเดอร์..." class="form-control form-control-sm bg-dark text-white border-secondary rounded-pill px-3" style="width: 160px;" />
+                    <div style="width: 250px;">
+                        <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาโฟลเดอร์เดือน/ปี..." class="form-control bg-dark text-white border-secondary form-control-sm rounded-pill px-3" />
                     </div>
                 </div>
 
                 <div id="csLoader" class="text-center py-3">
                     <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์...</span>
+                    <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์ผล C/S...</span>
                 </div>
-                
-                <div id="csFolderGroups" class="row g-2"></div>
+
+                <div id="csFolderGroups" class="row g-3"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal สำหรับแสดงไฟล์ PDF ผล C/S -->
+    <!-- Modal สำหรับแสดงไฟล์ PDF ภายในโฟลเดอร์ -->
     <div class="modal fade" id="csFileModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
-                <div class="modal-header border-bottom border-secondary bg-success bg-opacity-10 py-2">
-                    <h6 class="modal-title text-success fw-bold m-0" id="csModalTitle"><i class="fa-solid fa-folder-open me-2"></i>รายการรายงาน</h6>
+                <div class="modal-header border-bottom border-secondary bg-success bg-opacity-10">
+                    <h5 class="modal-title text-success fw-bold" id="csModalTitle"><i class="fa-solid fa-folder-open me-2"></i>รายการรายงาน</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-3" style="max-height: 60vh; overflow-y: auto;">
-                    <div id="csModalLoading" class="text-center py-3">
-                        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-                        <p class="text-muted mt-1 small">กำลังดึงรายการไฟล์...</p>
+                <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
+                    <div id="csModalLoading" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="text-muted mt-2">กำลังดึงรายการไฟล์...</p>
                     </div>
                     <div id="csFileList" class="list-group list-group-flush bg-transparent"></div>
                     <div id="csNoFiles" class="text-center py-4 text-muted hidden">
                         <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
-                        <p class="small">ไม่พบไฟล์เอกสารในโฟลเดอร์นี้</p>
+                        <p>ไม่พบไฟล์เอกสารในโฟลเดอร์นี้</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal สำหรับดูและแก้ไขข้อมูล RO รายการนั้นๆ -->
-    <div class="modal fade" id="roDetailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
-                <div class="modal-header border-bottom border-secondary bg-info bg-opacity-10 py-2">
-                    <h6 class="modal-title text-info fw-bold m-0" id="roModalTitle"><i class="fas fa-edit me-2"></i>รายละเอียดข้อมูลการตรวจเช็คระบบ RO</h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
-                    <form id="roEditForm">
-                        <input type="hidden" id="edit_index">
-                        <div id="roFormFieldsContainer"></div>
-                    </form>
-                </div>
-                <div class="modal-footer border-top border-secondary py-2">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button>
-                    <button type="button" class="btn btn-info btn-sm px-4" id="btnSaveEdit" onclick="saveEditedRecord()">บันทึกการแก้ไข</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Script ทำงานทั้งหมด -->
+    <!-- Script รวมการทำงานทั้งหมด -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         const CS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1T2I9jBaUVQqRA-pnmqxAqZlTKZRI212-moZ_LpviGI3yILCekDVyAeaeKjP38tUw/exec";
-        
+
         let globalData = [];
         let currentDayData = null;
         let availableDates = [];
@@ -324,10 +331,19 @@
         const csMonthNamesFull = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
         function createGauge(elementId, maxVal, isRO) {
-            let colorStops = isRO ? [[0.4, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] : [[0.5, '#10b981'], [0.8, '#f59e0b'], [1, '#ef4444']];
+            let colorStops = isRO ? [[0.4, '
+#38bdf8'], [0.8, '
+#f59e0b'], [1, '
+#ef4444']] : [[0.5, '
+#10b981'], [0.8, '
+#f59e0b'], [1, '
+#ef4444']];
             let chart = echarts.init(document.getElementById(elementId));
             chart.setOption({
-                series: [{ type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: maxVal, splitNumber: 4, itemStyle: { color: '#ef4444' }, progress: { show: true, roundCap: true, width: 8 }, pointer: { length: '65%', width: 5, itemStyle: { color: '#ef4444' } }, axisLine: { lineStyle: { width: 8, color: colorStops } }, axisTick: { distance: -10, length: 4, lineStyle: { color: '#fff', width: 1 } }, splitLine: { distance: -15, length: 8, lineStyle: { color: '#fff', width: 2 } }, axisLabel: { color: '#94a3b8', distance: 15, fontSize: 9 }, detail: { valueAnimation: true, formatter: '{value}', color: '#fff', fontSize: 14, offsetCenter: [0, '60%'] }, data: [{ value: 0 }] }]
+                series: [{ type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: maxVal, splitNumber: 4, itemStyle: { color: '
+#ef4444' }, progress: { show: true, roundCap: true, width: 8 }, pointer: { length: '65%', width: 5, itemStyle: { color: '
+#ef4444' } }, axisLine: { lineStyle: { width: 8, color: colorStops } }, axisTick: { distance: -10, length: 4, lineStyle: { color: '#fff', width: 1 } }, splitLine: { distance: -15, length: 8, lineStyle: { color: '#fff', width: 2 } }, axisLabel: { color: '
+#94a3b8', distance: 15, fontSize: 9 }, detail: { valueAnimation: true, formatter: '{value}', color: '#fff', fontSize: 14, offsetCenter: [0, '60%'] }, data: [{ value: 0 }] }]
             });
             gauges[elementId] = chart;
         }
@@ -351,7 +367,7 @@
                 if (year.length < 4 && dParts[0].length === 4) { year = dParts[0]; month = dParts[1]; day = dParts[2]; }
                 let y = String(year); let m = String(month).padStart(2, '0'); let d = String(day).padStart(2, '0');
                 let tParts = timePart.split(':'); let h = String(tParts[0] || '0').padStart(2, '0'); let min = String(tParts[1] || '0').padStart(2, '0');
-                return { dateStr: `${y}-${m}-${d}`, monthStr: `${y}-${m}`, dayNum: parseInt(d, 10), timeDisplay: `${d}/${m}/${y} ${h}:${min}` };
+                return { dateStr: ${y}-${m}-${d}, monthStr: ${y}-${m}, dayNum: parseInt(d, 10), timeDisplay: ${d}/${m}/${y} ${h}:${min} };
             }
             return null;
         }
@@ -360,9 +376,9 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                
-                globalData = data.map((row, index) => {
-                    let mapped = { rawObj: row, globalIndex: index };
+
+                globalData = data.map(row => {
+                    let mapped = {};
                     for (let k in row) {
                         let lk = k.toLowerCase().replace(/\s+/g, ' '); 
                         let val = row[k];
@@ -402,15 +418,15 @@
                     } else { mapped.dateStr = ""; }
                     return mapped;
                 });
-                
+
                 globalData = globalData.filter(d => d.dateStr !== "");
-                
+
                 if (globalData.length > 0) {
                     availableDates = [...new Set(globalData.map(d => d.dateStr))];
                     availableDates.sort((a,b) => a.localeCompare(b));
                     initCalendar();
                 }
-            } catch (e) { console.error(e); Swal.fire('เกิดข้อผิดพลาด', 'พบปัญหาในการดึงข้อมูล RO โปรดรีเฟรชหน้าจอ', 'error'); } 
+            } catch (e) { console.error(e); alert("พบปัญหาในการดึงข้อมูล RO โปรดรีเฟรชหน้าจอ"); } 
             finally { 
                 document.getElementById('loadingOverlay').style.display = 'none'; 
             }
@@ -432,19 +448,22 @@
         }
 
         function analyzeWaterSystem(data) {
-            let alerts = []; 
+            let alerts = []; let normals = [];
             let condRO = parseFloat(data.cond_ro) || 0;
-            if (condRO >= 10) alerts.push(`<b>Cond RO สูงเกินเกณฑ์ (${condRO}):</b> ตรวจสอบการอุดตันของ RO Membrane`);
+            if (condRO >= 10) alerts.push(<b>Cond RO สูงเกินเกณฑ์ (${condRO}):</b> ตรวจสอบการอุดตันของ RO Membrane);
+            else normals.push(Conductivity RO ผ่านเกณฑ์ TRT);
+
             let rec = parseFloat(data.rec) || 0;
-            if (rec > 0 && rec < 45) alerts.push(`<b>% Recovery ต่ำ (${rec}%):</b> อาจเกิดจาก Membrane ตัน`);
-            else if (rec > 55) alerts.push(`<b>% Recovery สูง (${rec}%):</b> ระบบทำงานหนัก ระวังอายุเมมเบรนสั้นลง`);
+            if (rec > 0 && rec < 45) alerts.push(<b>% Recovery ต่ำ (${rec}%):</b> อาจเกิดจาก Membrane ตัน);
+            else if (rec > 55) alerts.push(<b>% Recovery สูง (${rec}%):</b> ระบบทำงานหนัก ระวังอายุเมมเบรนสั้นลง);
+            else if (rec >= 45 && rec <= 55) normals.push(% Recovery อยู่ในเกณฑ์มาตรฐาน (${rec}%));
 
             let html = "";
             if (alerts.length > 0) {
-                html += `<h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle"></i> ข้อควรระวัง:</h6><ul class="text-warning mb-3" style="font-size: 0.95rem;">`;
-                alerts.forEach(a => html += `<li>${a}</li>`); html += `</ul>`;
+                html += <h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle"></i> ข้อควรระวัง:</h6><ul class="text-warning mb-3" style="font-size: 0.95rem;">;
+                alerts.forEach(a => html += <li>${a}</li>); html += </ul>;
             } else {
-                html += `<div class="alert alert-success bg-transparent border-success text-success p-2 mb-3"><i class="fas fa-check-circle"></i> ผลการตรวจเบื้องต้น: ระบบสมบูรณ์ปกติ</div>`;
+                html += <div class="alert alert-success bg-transparent border-success text-success p-2 mb-3"><i class="fas fa-check-circle"></i> ผลการตรวจเบื้องต้น: ระบบสมบูรณ์ปกติ</div>;
             }
             document.getElementById('analysisResult').innerHTML = html;
         }
@@ -454,7 +473,7 @@
             let aiBox = document.getElementById('aiResultBox');
             let aiText = document.getElementById('aiText');
             aiBox.style.display = 'block';
-            aiText.innerHTML = `<span class="spinner-border spinner-border-sm text-info me-2"></span> กำลังส่งข้อมูลให้ AI วิเคราะห์...`;
+            aiText.innerHTML = <span class="spinner-border spinner-border-sm text-info me-2"></span> กำลังส่งข้อมูลให้ AI วิเคราะห์...;
 
             try {
                 const res = await fetch(SCRIPT_URL, {
@@ -466,10 +485,10 @@
                 if(responseData.result) {
                     aiText.innerHTML = marked.parse(responseData.result);
                 } else {
-                    aiText.innerHTML = `<span class="text-danger">เกิดข้อผิดพลาด: ${responseData.error}</span>`;
+                    aiText.innerHTML = <span class="text-danger">เกิดข้อผิดพลาด: ${responseData.error}</span>;
                 }
             } catch(e) {
-                aiText.innerHTML = `<span class="text-danger">การเชื่อมต่อล้มเหลว โปรดลองอีกครั้ง</span>`;
+                aiText.innerHTML = <span class="text-danger">การเชื่อมต่อล้มเหลว โปรดลองอีกครั้ง</span>;
             }
         }
 
@@ -537,9 +556,13 @@
             monthlyChart.setOption({
                 tooltip: { trigger: 'axis', formatter: 'วันที่ {b} : {c} µS/cm' },
                 grid: { left: '3%', right: '4%', bottom: '5%', top: '10%', containLabel: true },
-                xAxis: { type: 'category', boundaryGap: false, data: datesLabels, axisLabel: { color: '#94a3b8' } },
-                yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#334155' } } },
-                series: [{ name: 'Cond RO', type: 'line', smooth: true, itemStyle: { color: '#38bdf8' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.5)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) }, data: condData }]
+                xAxis: { type: 'category', boundaryGap: false, data: datesLabels, axisLabel: { color: '
+#94a3b8' } },
+                yAxis: { type: 'value', axisLabel: { color: '
+#94a3b8' }, splitLine: { lineStyle: { color: '
+#334155' } } },
+                series: [{ name: 'Cond RO', type: 'line', smooth: true, itemStyle: { color: '
+#38bdf8' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.5)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) }, data: condData }]
             });
         }
 
@@ -547,337 +570,179 @@
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = "";
             let sorted = [...monthData].sort((a,b) => b.dateStr.localeCompare(a.dateStr));
-            
+
             sorted.forEach(row => {
                 let tr = document.createElement('tr');
                 let condClass = (row.cond_ro && row.cond_ro < 10) ? 'text-success' : 'text-danger';
                 let recVal = parseFloat(row.rec) || 0;
                 let recClass = (recVal >= 45 && recVal <= 55) ? 'text-info' : 'text-warning fw-bold';
 
-                tr.innerHTML = `
+                tr.innerHTML = 
                     <td><small class="text-secondary">${row.timeDisplay || '-'}</small></td>
                     <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
                     <td class="text-info">${row.rej || "-"}</td>
                     <td class="${recClass}">${row.rec || "-"}</td>
                     <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal(${row.globalIndex})" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
-                        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal(${row.globalIndex})" title="แก้ไข"><i class="fas fa-edit"></i></button>
-                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
-                    </td>
-                `;
+                    <td>${row.operator || '-'}</td>
+                ;
                 tbody.appendChild(tr);
             });
         }
 
         // ==========================================
-        // ฟังก์ชัน Modal แสดงข้อมูลและแก้ไข
-        // ==========================================
-        function openDetailModal(index) {
-            let item = globalData.find(d => d.globalIndex === index);
-            if (!item) return;
-            let rowObj = item.rawObj;
-            let container = document.getElementById('roFormFieldsContainer');
-            document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-eye me-2"></i>รายละเอียดข้อมูลการตรวจเช็ค`;
-            
-            let html = `<div class="table-responsive"><table class="table table-dark table-striped table-bordered align-middle m-0" style="font-size: 0.85rem;"><tbody>`;
-            for (let key in rowObj) {
-                html += `<tr><th class="text-info" style="width: 40%;">${key}</th><td class="text-light">${rowObj[key] !== "" ? rowObj[key] : "-"}</td></tr>`;
-            }
-            html += `</tbody></table></div>`;
-            
-            container.innerHTML = html;
-            document.getElementById('btnSaveEdit').style.display = 'none';
-            
-            let myModal = new bootstrap.Modal(document.getElementById('roDetailModal'));
-            myModal.show();
-        }
-
-        function openEditModal(index) {
-            let item = globalData.find(d => d.globalIndex === index);
-            if (!item) return;
-            let rowObj = item.rawObj;
-            let container = document.getElementById('roFormFieldsContainer');
-            document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-edit me-2"></i>แก้ไขข้อมูลการตรวจเช็คระบบ RO`;
-            document.getElementById('edit_index').value = index;
-
-            let html = `<div class="row g-2">`;
-            for (let key in rowObj) {
-                let isReadonly = (key.toLowerCase().includes('ประทับเวลา') || key.toLowerCase().includes('timestamp'));
-                html += `
-                    <div class="col-md-6">
-                        <label class="form-label text-secondary small mb-1">${key}</label>
-                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary edit-input" data-key="${key}" value="${rowObj[key]}" ${isReadonly ? 'readonly' : ''}>
-                    </div>
-                `;
-            }
-            html += `</div>`;
-            container.innerHTML = html;
-            document.getElementById('btnSaveEdit').style.display = 'block';
-            
-            let myModal = new bootstrap.Modal(document.getElementById('roDetailModal'));
-            myModal.show();
-        }
-
-        async function saveEditedRecord() {
-            let index = document.getElementById('edit_index').value;
-            let item = globalData.find(d => d.globalIndex == index);
-            if (!item) return;
-            let originalRow = item.rawObj;
-            let inputs = document.querySelectorAll('.edit-input');
-            
-            let updatedObj = { timestamp_raw: originalRow['ประทับเวลา'] || originalRow['Timestamp'] || item.timestamp_raw };
-            
-            inputs.forEach(input => {
-                let key = input.getAttribute('data-key');
-                let val = input.value;
-                updatedObj[key] = val;
-                
-                let lk = key.toLowerCase();
-                if(lk === 'orp') updatedObj.orp = extractNum(val);
-                else if(lk.includes('chlorine ในน้ำดิบ')) updatedObj.cl_raw = val;
-                else if(lk.includes('feed pump')) updatedObj.press_feed = extractNum(val);
-                else if(lk.includes('sand pressure')) updatedObj.press_sand = extractNum(val);
-                else if(lk.includes('softener pressure')) updatedObj.press_soft = extractNum(val);
-                else if(lk.includes('brine')) updatedObj.brine = extractNum(val);
-                else if(lk.includes('carbon 1 pressure')) updatedObj.press_c1 = extractNum(val);
-                else if(lk.includes('carbon 2 pressure')) updatedObj.press_c2 = extractNum(val);
-                else if(lk.includes('cartridge filter')) updatedObj.press_cart = extractNum(val);
-                else if(lk.includes('raw cond')) updatedObj.cond_raw = extractNum(val);
-                else if(lk.includes('temp')) updatedObj.temp = extractNum(val);
-                else if(lk.includes('ro pressure')) updatedObj.press_ro_pump = extractNum(val);
-                else if(lk.includes('concentrate pressure')) updatedObj.press_conc = extractNum(val);
-                else if(lk.includes('permeate pressure')) updatedObj.press_perm = extractNum(val);
-                else if(lk.includes('permeate flow')) updatedObj.flow_perm = extractNum(val);
-                else if(lk.includes('concentrate flow')) updatedObj.flow_conc = extractNum(val);
-                else if(lk.includes('cond') && lk.includes('ro')) updatedObj.cond_ro = extractNum(val);
-                else if(lk.includes('rejection')) updatedObj.rej = extractNum(val);
-                else if(lk.includes('recovery')) updatedObj.rec = extractNum(val);
-                else if(lk.includes('ชื่อ-สกุล')) updatedObj.operator = val;
-            });
-
-            try {
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                const res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'editRecord', data: updatedObj })
-                });
-                const result = await res.json();
-                if(result.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกการแก้ไขเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
-                    let modalEl = document.getElementById('roDetailModal');
-                    let modalObj = bootstrap.Modal.getInstance(modalEl);
-                    if(modalObj) modalObj.hide();
-                    loadData();
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
-                }
-            } catch(e) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเพื่อบันทึกได้: ' + e.toString(), 'error');
-            }
-        }
-
-        async function deleteRecord(timestampRaw) {
-            const { value: pass } = await Swal.fire({
-                title: 'ยืนยันการลบข้อมูล',
-                input: 'password',
-                inputLabel: 'กรุณากรอกรหัสผ่าน 4 หลัก เพื่อยืนยัน:',
-                inputPlaceholder: 'รหัสผ่าน',
-                inputAttributes: { maxlength: 4, autocapitalize: 'off', autocorrect: 'off' },
-                showCancelButton: true,
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#d33'
-            });
-
-            if (!pass) return;
-            if (pass !== "1234") {
-                Swal.fire('รหัสผ่านไม่ถูกต้อง', 'ไม่อนุญาตให้ลบข้อมูล', 'error');
-                return;
-            }
-
-            const confirmDel = await Swal.fire({
-                title: 'แน่ใจหรือไม่?',
-                text: "ข้อมูลนี้จะถูกลบออกจากระบบอย่างถาวร!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'ใช่, ลบเลย!',
-                cancelButtonText: 'ยกเลิก'
-            });
-
-            if (!confirmDel.isConfirmed) return;
-
-            try {
-                Swal.fire({ title: 'กำลังลบข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                const res = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'deleteRecord', data: timestampRaw })
-                });
-                const result = await res.json();
-                if(result.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'ลบสำเร็จ!', text: 'ลบข้อมูลเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
-                    loadData();
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
-                }
-            } catch(e) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเพื่อลบได้: ' + e.toString(), 'error');
-            }
-        }
-
-        // ==========================================
-        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S แบบปลอดภัย (ไม่พัง)
+        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S ผ่าน Fetch ไปยัง Web App URL
         // ==========================================
         async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
             try {
                 const response = await fetch(CS_SCRIPT_URL + "?action=getFolders");
-                const text = await response.text();
-                
-                let folders;
-                try {
-                    folders = JSON.parse(text);
-                } catch (parseErr) {
-                    throw new Error("ระบบ C/S ส่งข้อมูลกลับมาไม่ถูกต้อง (อาจติดสิทธิ์หรือ Error HTML)");
+                const folders = await response.json();
+                document.getElementById('csLoader').style.display = 'none';
+
+                if(folders && folders.error) {
+                    throw new Error(folders.error);
                 }
 
-                document.getElementById('csLoader').style.display = 'none';
-                
-                if(folders && folders.error) throw new Error(folders.error);
-                
-                allCSFolders = (folders || []).sort((a, b) => b.name.localeCompare(a.name, 'th'));
-                populateMonthFilter(allCSFolders);
+                allCSFolders = folders || [];
                 renderCSGroups(allCSFolders);
             } catch (err) {
                 document.getElementById('csLoader').style.display = 'none';
-                document.getElementById('csFolderGroups').innerHTML = `<div class="text-muted text-center small">ไม่สามารถดึงโฟลเดอร์ผลเพาะเชื้อได้ (${err.message})</div>`;
+                document.getElementById('csFolderGroups').innerHTML = <div class="text-danger text-center">เกิดข้อผิดพลาดในการดึงโฟลเดอร์: ${err.message}</div>;
             }
         }
 
         function extractYM(name) {
             let m = name.match(/(20\d{2}|25\d{2})[-\/\. ]?(0[1-9]|1[0-2])/);
-            if (m) return {year: m[1], month: m[2], key: `${m[1]}-${m.length>2?m[2]:''}`};
+            if (m) return {year: m[1], month: m[2]};
             m = name.match(/(0[1-9]|1[0-2])[-\/\. ]?(20\d{2}|25\d{2})/);
-            if (m) return {year: m[2], month: m[1], key: `${m[2]}-${m[1]}`};
+            if (m) return {year: m[2], month: m[1]};
             m = name.match(/(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)[ ]?(20\d{2}|25\d{2})/);
             if (m) {
-                let monthNum = String(csMonthNamesFull.indexOf(m[1])+1).padStart(2,'0');
-                return {year: m[2], month: monthNum, key: `${m[2]}-${monthNum}`};
+                let month = String(csMonthNamesFull.indexOf(m[1])+1).padStart(2,'0');
+                return {year: m[2], month};
             }
-            return {year:'อื่นๆ', month:'อื่นๆ', key: 'อื่นๆ'};
-        }
-
-        function populateMonthFilter(folders) {
-            const selectEl = document.getElementById('csMonthFilter');
-            let monthSet = new Set();
-            folders.forEach(f => {
-                let ym = extractYM(f.name);
-                if (ym.key !== 'อื่นๆ') monthSet.add(ym.key);
-            });
-            let sortedKeys = Array.from(monthSet).sort((a,b) => b.localeCompare(a));
-            let optionsHtml = `<option value="all">-- ทุกเดือน/ปี --</option>`;
-            sortedKeys.forEach(key => {
-                let [year, month] = key.split('-');
-                let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
-                let yLabel = year.startsWith('25') ? `พ.ศ. ${year}` : year;
-                optionsHtml += `<option value="${key}">${mName} ${yLabel}</option>`;
-            });
-            selectEl.innerHTML = optionsHtml;
+            return {year:'อื่นๆ', month:'อื่นๆ'};
         }
 
         function renderCSGroups(folders) {
             const container = document.getElementById('csFolderGroups');
             const keyword = document.getElementById('csSearchInput').value.trim().toLowerCase();
-            const selectedMonthKey = document.getElementById('csMonthFilter').value;
-            
-            let filtered = folders.filter(f => {
+
+            let filtered = folders;
+            if (keyword) {
+                filtered = folders.filter(f => f.name.toLowerCase().includes(keyword));
+            }
+
+            let groups = {};
+            filtered.forEach(f => {
                 let ym = extractYM(f.name);
-                let matchKeyword = f.name.toLowerCase().includes(keyword);
-                let matchMonth = (selectedMonthKey === 'all' || ym.key === selectedMonthKey);
-                return matchKeyword && matchMonth;
+                let key = (ym.year !== 'อื่นๆ') ? ${ym.year}-${ym.month} : 'อื่นๆ';
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(f);
             });
+            let sortedKeys = Object.keys(groups).filter(k => k !== 'อื่นๆ').sort((a,b) => b.localeCompare(a));
+            if (groups['อื่นๆ']) sortedKeys.push('อื่นๆ');
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-3 small">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>`;
+                container.innerHTML = <div class="text-center text-muted py-3">ไม่พบโฟลเดอร์ผลเพาะเชื้อ</div>;
                 return;
             }
 
             let html = '';
-            filtered.forEach(folder => {
-                html += `
-                    <div class="col-auto">
-                        <div class="px-3 py-2 rounded-2 border border-secondary bg-dark bg-opacity-75 d-flex align-items-center gap-2 shadow-sm" 
-                             style="cursor: pointer; transition: all 0.2s; font-size: 0.85rem;" 
-                             onmouseover="this.style.borderColor='#198754'; this.style.backgroundColor='#19875422';" 
-                             onmouseout="this.style.borderColor='#6c757d'; this.style.backgroundColor='rgba(15, 23, 42, 0.75)';"
-                             onclick="openCSModal('${folder.id}', '${folder.name}')">
-                            <i class="fa-solid fa-folder text-success"></i>
-                            <span class="text-white fw-medium">${folder.name}</span>
+            sortedKeys.forEach(key => {
+                let groupFolders = groups[key];
+                let groupTitle = 'อื่นๆ';
+                if (key !== 'อื่นๆ') {
+                    let [year, month] = key.split('-');
+                    let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
+                    let yLabel = year.startsWith('25') ? พ.ศ. ${year} : year;
+                    groupTitle = ${mName} ${yLabel};
+                }
+                html += 
+                    <div class="col-12">
+                        <div class="text-success fw-bold mb-2 mt-2" style="font-size: 0.9rem;">
+                            <i class="fa-solid fa-calendar-days me-1"></i> ${groupTitle}
                         </div>
-                    </div>
-                `;
+                        <div class="row g-2">
+                ;
+                groupFolders.forEach(folder => {
+                    html += 
+                        <div class="col-md-4 col-sm-6">
+                            <div class="p-3 rounded-3 border border-secondary bg-dark bg-opacity-50 h-100 d-flex align-items-center justify-content-between shadow-sm" 
+                                 style="cursor: pointer; transition: all 0.2s;" 
+                                 onmouseover="this.style.borderColor='#198754'; this.style.transform='translateY(-2px)';" 
+                                 onmouseout="this.style.borderColor='#6c757d'; this.style.transform='translateY(0)';"
+                                 onclick="openCSModal('${folder.id}', '${folder.name}')">
+                                <div class="d-flex align-items-center gap-3 overflow-hidden">
+                                    <div class="bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                        <i class="fa-solid fa-folder"></i>
+                                    </div>
+                                    <div class="text-truncate">
+                                        <div class="text-white fw-medium text-truncate" style="font-size: 0.85rem;">${folder.name}</div>
+                                        <small class="text-muted" style="font-size: 0.75rem;">คลิกเพื่อดูไฟล์รายงาน</small>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-muted small ms-2"></i>
+                            </div>
+                        </div>
+                    ;
+                });
+                html += </div></div>;
             });
             container.innerHTML = html;
         }
 
         async function openCSModal(folderId, folderName) {
             const modal = new bootstrap.Modal(document.getElementById('csFileModal'));
-            document.getElementById('csModalTitle').innerHTML = `<i class="fa-solid fa-folder-open me-2"></i>${folderName}`;
+            document.getElementById('csModalTitle').innerHTML = <i class="fa-solid fa-folder-open me-2"></i>${folderName};
             document.getElementById('csModalLoading').style.display = 'block';
             document.getElementById('csFileList').innerHTML = '';
             document.getElementById('csNoFiles').classList.add('hidden');
             modal.show();
 
             try {
-                const response = await fetch(`${CS_SCRIPT_URL}?action=getFiles&folderId=${folderId}`);
-                const text = await response.text();
-                let files;
-                try {
-                    files = JSON.parse(text);
-                } catch(e) {
-                    throw new Error("ไม่สามารถอ่านข้อมูลไฟล์ได้");
-                }
-
+                const response = await fetch(${CS_SCRIPT_URL}?action=getFiles&folderId=${folderId});
+                const files = await response.json();
                 document.getElementById('csModalLoading').style.display = 'none';
-                
+
                 const fileListEl = document.getElementById('csFileList');
                 if (!files || files.length === 0) {
                     document.getElementById('csNoFiles').classList.remove('hidden');
                 } else {
                     let fHtml = '';
                     files.forEach(file => {
-                        fHtml += `
+                        fHtml += 
                             <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
                                 <div class="d-flex align-items-center gap-2 text-truncate me-2">
                                     <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
-                                    <span class="text-light text-truncate" style="font-size: 0.85rem;">${file.name}</span>
+                                    <span class="text-light text-truncate" style="font-size: 0.9rem;">${file.name}</span>
                                 </div>
-                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 py-1 rounded-pill" style="font-size: 0.75rem;">
+                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 rounded-pill" style="font-size: 0.8rem;">
                                     <i class="fa-solid fa-download me-1"></i> เปิดดู / ดาวน์โหลด
                                 </a>
                             </div>
-                        `;
+                        ;
                     });
                     fileListEl.innerHTML = fHtml;
                 }
             } catch (err) {
                 document.getElementById('csModalLoading').style.display = 'none';
-                document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center small">เกิดข้อผิดพลาด: ${err.message}</div>`;
+                document.getElementById('csFileList').innerHTML = <div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>;
             }
         }
 
-        document.getElementById('csSearchInput').addEventListener('input', () => renderCSGroups(allCSFolders));
-        document.getElementById('csMonthFilter').addEventListener('change', () => renderCSGroups(allCSFolders));
+        document.getElementById('csSearchInput').addEventListener('input', function() {
+            renderCSGroups(allCSFolders);
+        });
 
         window.onload = () => {
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
-            
+
+            // 1. โหลดข้อมูลแดชบอร์ด RO หลัก
             loadData();
+
+            // 2. โหลดโฟลเดอร์ผลเพาะเชื้อ C/S ผ่าน Web App URL แบบไม่บล็อกหน้าจอ
             setTimeout(() => { loadCSFoldersViaFetch(); }, 500);
 
             window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
@@ -885,3 +750,4 @@
     </script>
 </body>
 </html>
+
