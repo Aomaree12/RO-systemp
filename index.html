@@ -299,7 +299,7 @@
                 <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
                     <form id="roEditForm">
                         <input type="hidden" id="edit_index">
-                        <div id="roFormFieldsContainer"></div>
+                        <div class="row g-3" id="roFormFieldsContainer"></div>
                     </form>
                 </div>
                 <div class="modal-footer border-top border-secondary py-2">
@@ -561,9 +561,9 @@
                     <td class="${recClass}">${row.rec || "-"}</td>
                     <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
                     <td>
-                        <button type="button" class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal(${row.globalIndex})" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
-                        <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal(${row.globalIndex})" title="แก้ไข"><i class="fas fa-edit"></i></button>
-                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
+                        <button class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal(${row.globalIndex})" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal(${row.globalIndex})" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -571,37 +571,34 @@
         }
 
         // ==========================================
-        // ฟังก์ชัน Modal แสดงข้อมูลและแก้ไข
+        // ฟังก์ชันจัดการ Modal ดู / แก้ไข / ลบ
         // ==========================================
         function openDetailModal(index) {
-            let item = globalData.find(d => d.globalIndex === index);
-            if (!item) return;
-            let rowObj = item.rawObj;
+            let rowObj = globalData[index].rawObj;
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-eye me-2"></i>รายละเอียดข้อมูลการตรวจเช็ค`;
             
-            let html = `<div class="table-responsive"><table class="table table-dark table-striped table-bordered align-middle m-0" style="font-size: 0.85rem;"><tbody>`;
+            let html = '';
             for (let key in rowObj) {
-                html += `<tr><th class="text-info" style="width: 40%;">${key}</th><td class="text-light">${rowObj[key] !== "" ? rowObj[key] : "-"}</td></tr>`;
+                html += `
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small mb-1">${key}</label>
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" value="${rowObj[key]}" readonly>
+                    </div>
+                `;
             }
-            html += `</tbody></table></div>`;
-            
             container.innerHTML = html;
             document.getElementById('btnSaveEdit').style.display = 'none';
-            
-            let myModal = new bootstrap.Modal(document.getElementById('roDetailModal'));
-            myModal.show();
+            new bootstrap.Modal(document.getElementById('roDetailModal')).show();
         }
 
         function openEditModal(index) {
-            let item = globalData.find(d => d.globalIndex === index);
-            if (!item) return;
-            let rowObj = item.rawObj;
+            let rowObj = globalData[index].rawObj;
             let container = document.getElementById('roFormFieldsContainer');
             document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-edit me-2"></i>แก้ไขข้อมูลการตรวจเช็คระบบ RO`;
             document.getElementById('edit_index').value = index;
 
-            let html = `<div class="row g-2">`;
+            let html = '';
             for (let key in rowObj) {
                 let isReadonly = (key.toLowerCase().includes('ประทับเวลา') || key.toLowerCase().includes('timestamp'));
                 html += `
@@ -611,22 +608,17 @@
                     </div>
                 `;
             }
-            html += `</div>`;
             container.innerHTML = html;
             document.getElementById('btnSaveEdit').style.display = 'block';
-            
-            let myModal = new bootstrap.Modal(document.getElementById('roDetailModal'));
-            myModal.show();
+            new bootstrap.Modal(document.getElementById('roDetailModal')).show();
         }
 
         async function saveEditedRecord() {
             let index = document.getElementById('edit_index').value;
-            let item = globalData.find(d => d.globalIndex == index);
-            if (!item) return;
-            let originalRow = item.rawObj;
+            let originalRow = globalData[index].rawObj;
             let inputs = document.querySelectorAll('.edit-input');
             
-            let updatedObj = { timestamp_raw: originalRow['ประทับเวลา'] || originalRow['Timestamp'] || item.timestamp_raw };
+            let updatedObj = { timestamp_raw: originalRow['ประทับเวลา'] || originalRow['Timestamp'] || globalData[index].timestamp_raw };
             
             inputs.forEach(input => {
                 let key = input.getAttribute('data-key');
@@ -666,9 +658,7 @@
                 const result = await res.json();
                 if(result.status === 'success') {
                     Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกการแก้ไขเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
-                    let modalEl = document.getElementById('roDetailModal');
-                    let modalObj = bootstrap.Modal.getInstance(modalEl);
-                    if(modalObj) modalObj.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('roDetailModal')).hide();
                     loadData();
                 } else {
                     Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
@@ -730,21 +720,13 @@
         }
 
         // ==========================================
-        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S แบบปลอดภัย (ไม่พัง)
+        // ดึงโฟลเดอร์ผลเพาะเชื้อ C/S
         // ==========================================
         async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
             try {
                 const response = await fetch(CS_SCRIPT_URL + "?action=getFolders");
-                const text = await response.text();
-                
-                let folders;
-                try {
-                    folders = JSON.parse(text);
-                } catch (parseErr) {
-                    throw new Error("ระบบ C/S ส่งข้อมูลกลับมาไม่ถูกต้อง (อาจติดสิทธิ์หรือ Error HTML)");
-                }
-
+                const folders = await response.json();
                 document.getElementById('csLoader').style.display = 'none';
                 
                 if(folders && folders.error) throw new Error(folders.error);
@@ -754,7 +736,7 @@
                 renderCSGroups(allCSFolders);
             } catch (err) {
                 document.getElementById('csLoader').style.display = 'none';
-                document.getElementById('csFolderGroups').innerHTML = `<div class="text-muted text-center small">ไม่สามารถดึงโฟลเดอร์ผลเพาะเชื้อได้ (${err.message})</div>`;
+                document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center small">เกิดข้อผิดพลาด: ${err.message}</div>`;
             }
         }
 
@@ -834,14 +816,7 @@
 
             try {
                 const response = await fetch(`${CS_SCRIPT_URL}?action=getFiles&folderId=${folderId}`);
-                const text = await response.text();
-                let files;
-                try {
-                    files = JSON.parse(text);
-                } catch(e) {
-                    throw new Error("ไม่สามารถอ่านข้อมูลไฟล์ได้");
-                }
-
+                const files = await response.json();
                 document.getElementById('csModalLoading').style.display = 'none';
                 
                 const fileListEl = document.getElementById('csFileList');
