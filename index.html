@@ -236,7 +236,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 6: โฟลเดอร์ผลเพาะเชื้อ C/S (ดึงจากฟังก์ชันเดิม getMonthlyFolders ใน GS ทันที) -->
+    <!-- โซนที่ 6: โฟลเดอร์ผลเพาะเชื้อ C/S (ดึงข้อมูลผ่าน Web App URL) -->
     <div class="row g-3">
         <div class="col-12">
             <div class="card-custom border-success p-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
@@ -286,6 +286,7 @@
     <!-- Script รวมการทำงานทั้งหมด -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
+        const CS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1T2I9jBaUVQqRA-pnmqxAqZlTKZRI212-moZ_LpviGI3yILCekDVyAeaeKjP38tUw/exec";
         
         let globalData = [];
         let currentDayData = null;
@@ -542,21 +543,25 @@
         }
 
         // ==========================================
-        // เรียกใช้ฟังก์ชัน getMonthlyFolders() และ getPDFFilesInFolder() จากไฟล์ GS เดิมของคุณโดยตรง
+        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S ผ่าน Fetch ไปยัง Web App URL
         // ==========================================
-        function loadCSFolders() {
+        async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
-            google.script.run
-                .withSuccessHandler(function(folders) {
-                    document.getElementById('csLoader').style.display = 'none';
-                    allCSFolders = folders;
-                    renderCSGroups(folders);
-                })
-                .withFailureHandler(function(err) {
-                    document.getElementById('csLoader').style.display = 'none';
-                    document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
-                })
-                .getMonthlyFolders();
+            try {
+                const response = await fetch(CS_SCRIPT_URL + "?action=getFolders");
+                const folders = await response.json();
+                document.getElementById('csLoader').style.display = 'none';
+                
+                if(folders && folders.error) {
+                    throw new Error(folders.error);
+                }
+                
+                allCSFolders = folders || [];
+                renderCSGroups(allCSFolders);
+            } catch (err) {
+                document.getElementById('csLoader').style.display = 'none';
+                document.getElementById('csFolderGroups').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาดในการดึงโฟลเดอร์: ${err.message}</div>`;
+            }
         }
 
         function extractYM(name) {
@@ -640,7 +645,7 @@
             container.innerHTML = html;
         }
 
-        function openCSModal(folderId, folderName) {
+        async function openCSModal(folderId, folderName) {
             const modal = new bootstrap.Modal(document.getElementById('csFileModal'));
             document.getElementById('csModalTitle').innerHTML = `<i class="fa-solid fa-folder-open me-2"></i>${folderName}`;
             document.getElementById('csModalLoading').style.display = 'block';
@@ -648,36 +653,35 @@
             document.getElementById('csNoFiles').classList.add('hidden');
             modal.show();
 
-            // เรียกใช้ฟังก์ชัน getPDFFilesInFolder จาก GS เดิมของคุณ
-            google.script.run
-                .withSuccessHandler(function(files) {
-                    document.getElementById('csModalLoading').style.display = 'none';
-                    const fileListEl = document.getElementById('csFileList');
-                    if (!files || files.length === 0) {
-                        document.getElementById('csNoFiles').classList.remove('hidden');
-                    } else {
-                        let fHtml = '';
-                        files.forEach(file => {
-                            fHtml += `
-                                <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
-                                    <div class="d-flex align-items-center gap-2 text-truncate me-2">
-                                        <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
-                                        <span class="text-light text-truncate" style="font-size: 0.9rem;">${file.name}</span>
-                                    </div>
-                                    <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 rounded-pill" style="font-size: 0.8rem;">
-                                        <i class="fa-solid fa-download me-1"></i> เปิดดู / ดาวน์โหลด
-                                    </a>
+            try {
+                const response = await fetch(`${CS_SCRIPT_URL}?action=getFiles&folderId=${folderId}`);
+                const files = await response.json();
+                document.getElementById('csModalLoading').style.display = 'none';
+                
+                const fileListEl = document.getElementById('csFileList');
+                if (!files || files.length === 0) {
+                    document.getElementById('csNoFiles').classList.remove('hidden');
+                } else {
+                    let fHtml = '';
+                    files.forEach(file => {
+                        fHtml += `
+                            <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-25">
+                                <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                    <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
+                                    <span class="text-light text-truncate" style="font-size: 0.9rem;">${file.name}</span>
                                 </div>
-                            `;
-                        });
-                        fileListEl.innerHTML = fHtml;
-                    }
-                })
-                .withFailureHandler(function(err) {
-                    document.getElementById('csModalLoading').style.display = 'none';
-                    document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
-                })
-                .getPDFFilesInFolder(folderId);
+                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-success px-3 rounded-pill" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-download me-1"></i> เปิดดู / ดาวน์โหลด
+                                </a>
+                            </div>
+                        `;
+                    });
+                    fileListEl.innerHTML = fHtml;
+                }
+            } catch (err) {
+                document.getElementById('csModalLoading').style.display = 'none';
+                document.getElementById('csFileList').innerHTML = `<div class="text-danger text-center">เกิดข้อผิดพลาด: ${err.message}</div>`;
+            }
         }
 
         document.getElementById('csSearchInput').addEventListener('input', function() {
@@ -691,8 +695,8 @@
             // 1. โหลดข้อมูลแดชบอร์ด RO หลัก
             loadData();
             
-            // 2. โหลดโฟลเดอร์ผล C/S จากฟังก์ชันเดิมใน GS แบบเบื้องหลัง
-            setTimeout(() => { loadCSFolders(); }, 500);
+            // 2. โหลดโฟลเดอร์ผลเพาะเชื้อ C/S ผ่าน Web App URL แบบไม่บล็อกหน้าจอ
+            setTimeout(() => { loadCSFoldersViaFetch(); }, 500);
 
             window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
         };
