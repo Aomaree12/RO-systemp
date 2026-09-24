@@ -307,7 +307,7 @@
         </div>
     </div>
 
-    <!-- Script สำหรับทำงานทั้งหมด -->
+    <!-- Script สำหรับทำงานทั้งหมด (โหลดไว ไม่บล็อกหน้าจอ) -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         
@@ -407,7 +407,9 @@
                     initCalendar();
                 }
             } catch (e) { console.error(e); alert("พบปัญหาในการดึงข้อมูล RO โปรดรีเฟรชหน้าจอ"); } 
-            finally { document.getElementById('loadingOverlay').style.display = 'none'; }
+            finally { 
+                document.getElementById('loadingOverlay').style.display = 'none'; 
+            }
         }
 
         function initCalendar() {
@@ -564,7 +566,7 @@
         }
 
         // ==========================================
-        // ส่วนจัดการผลเพาะเชื้อ C/S และ โฟลเดอร์
+        // โหลดผล C/S และ โฟลเดอร์แบบไม่บล็อกหน้าจอ (Lazy Load)
         // ==========================================
         function loadCSDataAndFolders() {
             google.script.run
@@ -742,8 +744,13 @@
         window.onload = () => {
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
+            
+            // 1. โหลดข้อมูลหลัก (RO Dashboard) ทันที
             loadData();
-            loadCSDataAndFolders();
+            
+            // 2. โหลดข้อมูล C/S และโฟลเดอร์แบบเบื้องหลัง (ไม่บล็อกหน้าจอ)
+            setTimeout(() => { loadCSDataAndFolders(); }, 500);
+
             window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
         };
     </script>
