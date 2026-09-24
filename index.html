@@ -212,7 +212,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 5: ตารางย้อนหลัง RO -->
+    <!-- โซนที่ 5: ตารางย้อนหลัง RO (มีปุ่มจัดการ: ดู, แก้ไข, ลบ พร้อมรหัส 1234) -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
@@ -226,7 +226,7 @@
                                 <th>% Rejection</th>
                                 <th>% Recovery {45-55%}</th>
                                 <th>Flow (Perm/Conc)</th>
-                                <th>ผู้ตรวจ</th>
+                                <th>จัดการ (View / Edit / Delete)</th>
                             </tr>
                         </thead>
                         <tbody id="historyTableBody"></tbody>
@@ -236,7 +236,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 6: ผลเพาะเชื้อระบบน้ำ (ขนาดกะทัดรัด พร้อมฟิลเตอร์เดือนปี) -->
+    <!-- โซนที่ 6: ผลเพาะเชื้อระบบน้ำ C/S -->
     <div class="row g-3">
         <div class="col-12">
             <div class="card-custom border-success p-3 p-md-4" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
@@ -246,11 +246,9 @@
                         <small class="text-muted">คลิกเลือกโฟลเดอร์เพื่อดูรายงาน PDF รายเดือน</small>
                     </div>
                     <div class="d-flex gap-2">
-                        <!-- Dropdown Filter เลือกเดือนปี -->
                         <select id="csMonthFilter" class="form-select form-select-sm bg-dark text-white border-secondary rounded-pill px-3" style="width: 180px;">
                             <option value="all">-- ทุกเดือน/ปี --</option>
                         </select>
-                        <!-- ช่องค้นหาข้อความ -->
                         <input type="text" id="csSearchInput" placeholder="🔍 ค้นหาโฟลเดอร์..." class="form-control form-control-sm bg-dark text-white border-secondary rounded-pill px-3" style="width: 160px;" />
                     </div>
                 </div>
@@ -260,13 +258,12 @@
                     <span class="text-success ms-2 font-monospace">กำลังโหลดโฟลเดอร์...</span>
                 </div>
                 
-                <!-- พื้นที่แสดงโฟลเดอร์แบบเรียงชิด ประหยัดพื้นที่ -->
                 <div id="csFolderGroups" class="row g-2"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal สำหรับแสดงไฟล์ PDF ภายในโฟลเดอร์ -->
+    <!-- Modal สำหรับแสดงไฟล์ PDF ผล C/S -->
     <div class="modal fade" id="csFileModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
@@ -289,7 +286,31 @@
         </div>
     </div>
 
-    <!-- Script รวมการทำงานทั้งหมด -->
+    <!-- Modal สำหรับดูและแก้ไขข้อมูล RO รายการนั้นๆ -->
+    <div class="modal fade" id="roDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark text-white border border-secondary shadow-lg rounded-4">
+                <div class="modal-header border-bottom border-secondary bg-info bg-opacity-10 py-2">
+                    <h6 class="modal-title text-info fw-bold m-0" id="roModalTitle"><i class="fas fa-edit me-2"></i>รายละเอียดข้อมูลการตรวจเช็คระบบ RO</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 70vh; overflow-y: auto;">
+                    <form id="roEditForm">
+                        <input type="hidden" id="edit_timestamp_raw">
+                        <div class="row g-3" id="roFormFieldsContainer">
+                            <!-- จะถูกสร้างฟิลด์อัตโนมัติด้วย JavaScript -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top border-secondary py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">ปิด</button>
+                    <button type="button" class="btn btn-info btn-sm px-4" onclick="saveEditedRecord()">บันทึกการแก้ไข</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script ทำงานทั้งหมด -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         const CS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1T2I9jBaUVQqRA-pnmqxAqZlTKZRI212-moZ_LpviGI3yILCekDVyAeaeKjP38tUw/exec";
@@ -341,7 +362,7 @@
                 const data = await response.json();
                 
                 globalData = data.map(row => {
-                    let mapped = {};
+                    let mapped = { rawObj: row };
                     for (let k in row) {
                         let lk = k.toLowerCase().replace(/\s+/g, ' '); 
                         let val = row[k];
@@ -411,15 +432,12 @@
         }
 
         function analyzeWaterSystem(data) {
-            let alerts = []; let normals = [];
+            let alerts = []; 
             let condRO = parseFloat(data.cond_ro) || 0;
             if (condRO >= 10) alerts.push(`<b>Cond RO สูงเกินเกณฑ์ (${condRO}):</b> ตรวจสอบการอุดตันของ RO Membrane`);
-            else normals.push(`Conductivity RO ผ่านเกณฑ์ TRT`);
-
             let rec = parseFloat(data.rec) || 0;
             if (rec > 0 && rec < 45) alerts.push(`<b>% Recovery ต่ำ (${rec}%):</b> อาจเกิดจาก Membrane ตัน`);
             else if (rec > 55) alerts.push(`<b>% Recovery สูง (${rec}%):</b> ระบบทำงานหนัก ระวังอายุเมมเบรนสั้นลง`);
-            else if (rec >= 45 && rec <= 55) normals.push(`% Recovery อยู่ในเกณฑ์มาตรฐาน (${rec}%)`);
 
             let html = "";
             if (alerts.length > 0) {
@@ -536,20 +554,150 @@
                 let recVal = parseFloat(row.rec) || 0;
                 let recClass = (recVal >= 45 && recVal <= 55) ? 'text-info' : 'text-warning fw-bold';
 
+                let rawJSON = encodeURIComponent(JSON.stringify(row.rawObj));
+
                 tr.innerHTML = `
                     <td><small class="text-secondary">${row.timeDisplay || '-'}</small></td>
                     <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
                     <td class="text-info">${row.rej || "-"}</td>
                     <td class="${recClass}">${row.rec || "-"}</td>
                     <td><span class="text-info">${row.flow_perm || 0}</span> / <span class="text-warning">${row.flow_conc || 0}</span></td>
-                    <td>${row.operator || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info py-0 px-2 me-1" onclick="openDetailModal('${rawJSON}')" title="ดูข้อมูล"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-sm btn-outline-warning py-0 px-2 me-1" onclick="openEditModal('${rawJSON}')" title="แก้ไข"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteRecord('${row.timestamp_raw}')" title="ลบ"><i class="fas fa-trash"></i></button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
         // ==========================================
-        // ฟังก์ชันจัดการผลเพาะเชื้อ C/S (แบบกะทัดรัด + ฟิลเตอร์เดือนปี)
+        // ฟังก์ชันจัดการตาราง: View, Edit, Delete (ใส่รหัส 1234)
+        // ==========================================
+        function openDetailModal(encodedJson) {
+            let rowObj = JSON.parse(decodeURIComponent(encodedJson));
+            let container = document.getElementById('roFormFieldsContainer');
+            document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-eye me-2"></i>รายละเอียดข้อมูลการตรวจเช็ค`;
+            
+            let html = '';
+            for (let key in rowObj) {
+                html += `
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small mb-1">${key}</label>
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" value="${rowObj[key]}" readonly>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            // ซ่อนปุ่มบันทึกตอนดูอย่างเดียว
+            document.querySelector('#roDetailModal .modal-footer .btn-info').style.display = 'none';
+            new bootstrap.Modal(document.getElementById('roDetailModal')).show();
+        }
+
+        function openEditModal(encodedJson) {
+            let rowObj = JSON.parse(decodeURIComponent(encodedJson));
+            let container = document.getElementById('roFormFieldsContainer');
+            document.getElementById('roModalTitle').innerHTML = `<i class="fas fa-edit me-2"></i>แก้ไขข้อมูลการตรวจเช็คระบบ RO`;
+            document.getElementById('edit_timestamp_raw').value = rowObj['ประทับเวลา'] || rowObj['Timestamp'] || '';
+
+            let html = '';
+            for (let key in rowObj) {
+                let isReadonly = (key.toLowerCase().includes('ประทับเวลา') || key.toLowerCase().includes('timestamp'));
+                html += `
+                    <div class="col-md-6">
+                        <label class="form-label text-secondary small mb-1">${key}</label>
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary edit-input" data-key="${key}" value="${rowObj[key]}" ${isReadonly ? 'readonly' : ''}>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            document.querySelector('#roDetailModal .modal-footer .btn-info').style.display = 'block';
+            new bootstrap.Modal(document.getElementById('roDetailModal')).show();
+        }
+
+        async function saveEditedRecord() {
+            let inputs = document.querySelectorAll('.edit-input');
+            let updatedObj = { timestamp_raw: document.getElementById('edit_timestamp_raw').value };
+            
+            inputs.forEach(input => {
+                let key = input.getAttribute('data-key');
+                let val = input.value;
+                updatedObj[key] = val;
+                
+                // แมปค่ากลับเข้าฟิลด์โค้ดภายใน
+                let lk = key.toLowerCase();
+                if(lk === 'orp') updatedObj.orp = extractNum(val);
+                else if(lk.includes('chlorine ในน้ำดิบ')) updatedObj.cl_raw = val;
+                else if(lk.includes('feed pump')) updatedObj.press_feed = extractNum(val);
+                else if(lk.includes('sand pressure')) updatedObj.press_sand = extractNum(val);
+                else if(lk.includes('softener pressure')) updatedObj.press_soft = extractNum(val);
+                else if(lk.includes('brine')) updatedObj.brine = extractNum(val);
+                else if(lk.includes('carbon 1 pressure')) updatedObj.press_c1 = extractNum(val);
+                else if(lk.includes('carbon 2 pressure')) updatedObj.press_c2 = extractNum(val);
+                else if(lk.includes('cartridge filter')) updatedObj.press_cart = extractNum(val);
+                else if(lk.includes('raw cond')) updatedObj.cond_raw = extractNum(val);
+                else if(lk.includes('temp')) updatedObj.temp = extractNum(val);
+                else if(lk.includes('ro pressure')) updatedObj.press_ro_pump = extractNum(val);
+                else if(lk.includes('concentrate pressure')) updatedObj.press_conc = extractNum(val);
+                else if(lk.includes('permeate pressure')) updatedObj.press_perm = extractNum(val);
+                else if(lk.includes('permeate flow')) updatedObj.flow_perm = extractNum(val);
+                else if(lk.includes('concentrate flow')) updatedObj.flow_conc = extractNum(val);
+                else if(lk.includes('cond') && lk.includes('ro')) updatedObj.cond_ro = extractNum(val);
+                else if(lk.includes('rejection')) updatedObj.rej = extractNum(val);
+                else if(lk.includes('recovery')) updatedObj.rec = extractNum(val);
+                else if(lk.includes('ชื่อ-สกุล')) updatedObj.operator = val;
+            });
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'editRecord', data: updatedObj })
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    alert("บันทึกการแก้ไขเรียบร้อยแล้ว");
+                    bootstrap.Modal.getInstance(document.getElementById('roDetailModal')).hide();
+                    loadData(); // รีโหลดข้อมูลใหม่
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + result.message);
+                }
+            } catch(e) {
+                alert("ไม่สามารถเชื่อมต่อเพื่อบันทึกได้: " + e.toString());
+            }
+        }
+
+        async function deleteRecord(timestampRaw) {
+            let pass = prompt("กรุณากรอกรหัสผ่าน 4 หลัก เพื่อยืนยันการลบข้อมูล:");
+            if (pass === null) return; // กด Cancel
+            if (pass !== "1234") {
+                alert("รหัสผ่านไม่ถูกต้อง! ไม่อนุญาตให้ลบข้อมูล");
+                return;
+            }
+
+            if (!confirm("คุณแน่ใจหรือไม่ที่จะลบรายการข้อมูลนี้?")) return;
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'deleteRecord', data: timestampRaw })
+                });
+                const result = await res.json();
+                if(result.status === 'success') {
+                    alert("ลบข้อมูลเรียบร้อยแล้ว");
+                    loadData(); // รีโหลดข้อมูลใหม่
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + result.message);
+                }
+            } catch(e) {
+                alert("ไม่สามารถเชื่อมต่อเพื่อลบได้: " + e.toString());
+            }
+        }
+
+        // ==========================================
+        // ฟังก์ชันดึงโฟลเดอร์ผลเพาะเชื้อ C/S
         // ==========================================
         async function loadCSFoldersViaFetch() {
             document.getElementById('csLoader').style.display = 'block';
@@ -560,9 +708,7 @@
                 
                 if(folders && folders.error) throw new Error(folders.error);
                 
-                // เรียงลำดับโฟลเดอร์จากใหม่ไปเก่าตามชื่อ
                 allCSFolders = (folders || []).sort((a, b) => b.name.localeCompare(a.name, 'th'));
-                
                 populateMonthFilter(allCSFolders);
                 renderCSGroups(allCSFolders);
             } catch (err) {
@@ -587,17 +733,12 @@
         function populateMonthFilter(folders) {
             const selectEl = document.getElementById('csMonthFilter');
             let monthSet = new Set();
-            
             folders.forEach(f => {
                 let ym = extractYM(f.name);
-                if (ym.key !== 'อื่นๆ') {
-                    monthSet.add(ym.key);
-                }
+                if (ym.key !== 'อื่นๆ') monthSet.add(ym.key);
             });
-
             let sortedKeys = Array.from(monthSet).sort((a,b) => b.localeCompare(a));
             let optionsHtml = `<option value="all">-- ทุกเดือน/ปี --</option>`;
-            
             sortedKeys.forEach(key => {
                 let [year, month] = key.split('-');
                 let mName = csMonthNamesFull[parseInt(month, 10) - 1] || month;
@@ -681,7 +822,6 @@
             }
         }
 
-        // Event สำหรับตัวกรอง
         document.getElementById('csSearchInput').addEventListener('input', () => renderCSGroups(allCSFolders));
         document.getElementById('csMonthFilter').addEventListener('change', () => renderCSGroups(allCSFolders));
 
