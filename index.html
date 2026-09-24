@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามน้ำบริสุทธิ์ RO - สถาบันบำราศนราดูร</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Flatpickr (ระบบปฏิทิน) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
+
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .card-custom { background-color: #1e293b; border-radius: 20px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); padding: 20px; }
@@ -40,6 +49,11 @@
         .table-dark-custom { background-color: #0f172a; color: #cbd5e1; border-color: #334155; }
         .table-dark-custom th { background-color: #1e293b; color: #38bdf8; position: sticky; top: 0; z-index: 10;}
         #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* ปรับแต่งปฏิทิน */
+        .flatpickr-calendar { font-family: 'Segoe UI', sans-serif; }
+        .flatpickr-day.has-data { color: #10b981 !important; font-weight: bold; }
+        .flatpickr-day.no-data-past { color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1); }
     </style>
 </head>
 <body class="p-3 p-md-4">
@@ -47,7 +61,7 @@
     <!-- Loading Screen -->
     <div id="loadingOverlay">
         <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h4 class="mt-3 text-info">กำลังโหลดข้อมูลและปรับปรุงการแสดงผล...</h4>
+        <h4 class="mt-3 text-info">กำลังโหลดข้อมูลและปฏิทิน...</h4>
     </div>
 
     <!-- Header & Filter -->
@@ -59,9 +73,10 @@
                     <h6 class="text-secondary mt-2 mb-0">สถาบันบำราศนราดูร (Hemodialysis RO System)</h6>
                 </div>
                 <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-info border-secondary"><i class="fas fa-calendar-alt"></i> &nbsp;เลือกวันที่</span>
-                        <select id="dateFilter" class="form-select bg-dark text-white border-secondary" onchange="applyFilter()"></select>
+                    <div class="input-group" style="width: 280px;">
+                        <span class="input-group-text bg-dark text-info border-secondary"><i class="fas fa-calendar-alt"></i></span>
+                        <!-- เปลี่ยนจาก Dropdown เป็น Input สำหรับปฏิทิน -->
+                        <input type="text" id="dateFilter" class="form-control bg-dark text-white border-secondary" placeholder="คลิกเลือกวันที่...">
                     </div>
                     <div class="text-lg-end min-w-150">
                         <span class="badge bg-success mb-1"><i class="fas fa-check-circle"></i> ข้อมูลอัปเดต</span><br>
@@ -182,7 +197,7 @@
         </div>
     </div>
 
-    <!-- โซนที่ 5: ตารางย้อนหลัง (History Table) -->
+    <!-- โซนที่ 5: ตารางย้อนหลัง -->
     <div class="row g-3">
         <div class="col-12">
             <div class="card-custom">
@@ -199,9 +214,7 @@
                                 <th>ผู้ตรวจ</th>
                             </tr>
                         </thead>
-                        <tbody id="historyTableBody">
-                            <!-- JS จะดึงข้อมูลมาแสดงตรงนี้ -->
-                        </tbody>
+                        <tbody id="historyTableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -212,6 +225,7 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
         
         let globalData = [];
+        let availableDates = [];
         let gauges = {};
         let monthlyChart;
 
@@ -241,40 +255,33 @@
             return isNaN(n) ? 0 : n;
         }
 
-        // ฟังก์ชันแกะกล่องวันที่แบบเข้มงวด (แก้บัคสลับวัน/เดือน)
+        // ระบบแปลงวันที่ใหม่ ป้องกันบัค วัน/เดือน สลับกัน
         function parseRobustDate(rawStr) {
-            let str = String(rawStr || "").trim();
-            if(!str) return null;
-            let datePart = str.split(/[\sT]/)[0];
-            let year, month, day;
-
-            if (datePart.includes('-')) {
-                let p = datePart.split('-');
-                if(p[0].length === 4) { year = p[0]; month = p[1]; day = p[2]; }
-                else { day = p[0]; month = p[1]; year = p[2]; }
-            } else if (datePart.includes('/')) {
-                let p = datePart.split('/');
-                if(p[2].length === 4) { day = p[0]; month = p[1]; year = p[2]; }
-                else { year = p[0]; month = p[1]; day = p[2]; }
+            if (!rawStr) return null;
+            let d = new Date(rawStr);
+            
+            // ถ้าระบบ Browser อ่านวันที่ผิดพลาด (Invalid Date) ให้เราสับเอง
+            if (isNaN(d.getTime())) {
+                let parts = String(rawStr).split(/[\sT]/)[0].split(/[-/]/);
+                if (parts.length === 3) {
+                    // ตรวจสอบว่าปีอยู่ข้างหน้าหรือข้างหลัง (เช่น 24/09/2026 -> 2026 คือปี)
+                    if (parts[2].length === 4) { d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`); }
+                }
             }
+            if (isNaN(d.getTime())) return null;
 
-            if(year && month && day) {
-                let d = String(day).padStart(2,'0');
-                let m = String(month).padStart(2,'0');
-                let y = String(year);
-                if (y.length === 2) y = "20" + y; // เผื่อปีมาแค่ 2 หลัก
+            let y = d.getFullYear();
+            let m = String(d.getMonth() + 1).padStart(2, '0');
+            let day = String(d.getDate()).padStart(2, '0');
+            let h = String(d.getHours()).padStart(2, '0');
+            let min = String(d.getMinutes()).padStart(2, '0');
 
-                let timePart = str.split(/[\sT]/)[1] || "00:00";
-                let hm = timePart.split(':').slice(0,2).join(':');
-
-                return {
-                    dateStr: `${y}-${m}-${d}`, // รูปแบบมาตรฐานสำหรับฟิลเตอร์
-                    monthStr: `${y}-${m}`,
-                    dayNum: parseInt(d, 10),
-                    timeDisplay: `${d}/${m}/${y} ${hm}` // ข้อความที่แสดงในตาราง (ไทย)
-                };
-            }
-            return null;
+            return {
+                dateStr: `${y}-${m}-${day}`,
+                monthStr: `${y}-${m}`,
+                dayNum: d.getDate(),
+                timeDisplay: `${day}/${m}/${y} ${h}:${min}` // โชว์ในตาราง
+            };
         }
 
         async function loadData() {
@@ -317,7 +324,6 @@
                         else if(lk.includes('ชื่อ-สกุล') || lk.includes('name')) mapped.operator = val;
                     }
 
-                    // ใช้งาน Date Parser ใหม่
                     let dateInfo = parseRobustDate(mapped.timestamp_raw);
                     if(dateInfo) {
                         mapped.dateStr = dateInfo.dateStr;
@@ -333,8 +339,11 @@
                 globalData = globalData.filter(d => d.dateStr !== "");
                 
                 if (globalData.length > 0) {
-                    populateDateDropdown();
-                    applyFilter(); 
+                    // เก็บรวบรวมวันที่ทั้งหมดที่มีข้อมูล
+                    availableDates = [...new Set(globalData.map(d => d.dateStr))];
+                    availableDates.sort((a,b) => a.localeCompare(b)); // เรียงจากเก่าไปใหม่
+                    
+                    initCalendar();
                 }
             } catch (e) {
                 console.error(e);
@@ -344,55 +353,50 @@
             }
         }
 
-        function populateDateDropdown() {
-            const select = document.getElementById('dateFilter');
-            select.innerHTML = "";
-            let uniqueDates = [...new Set(globalData.map(d => d.dateStr))];
-            
-            // เรียงวันที่แบบ String จากใหม่ไปเก่า (ปลอดภัย ไม่ติดบัค NaN)
-            uniqueDates.sort((a,b) => b.localeCompare(a));
-            
-            uniqueDates.forEach(date => {
-                let parts = date.split('-');
-                let display = `${parts[2]}/${parts[1]}/${parts[0]}`; 
-                let opt = document.createElement('option');
-                opt.value = date;
-                opt.text = display;
-                select.appendChild(opt);
+        // เริ่มการทำงานของปฏิทิน Flatpickr
+        function initCalendar() {
+            flatpickr("#dateFilter", {
+                locale: "th",
+                dateFormat: "Y-m-d", // ส่งค่าเป็น YYYY-MM-DD
+                altInput: true, 
+                altFormat: "d/m/Y", // แสดงผลบนหน้าจอเป็น วัน/เดือน/ปี
+                enable: availableDates, // บังคับให้เลือกได้เฉพาะวันที่มีข้อมูล
+                defaultDate: availableDates[availableDates.length - 1], // ตั้งค่าเริ่มต้นเป็นวันล่าสุดที่มีข้อมูล
+                onChange: function(selectedDates, dateStr, instance) {
+                    if(dateStr) applyFilter(dateStr);
+                },
+                // ระบายสีปฏิทิน
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    let dateStrFormat = flatpickr.formatDate(dayElem.dateObj, "Y-m-d");
+                    let today = new Date();
+                    today.setHours(0,0,0,0);
+                    
+                    if (availableDates.includes(dateStrFormat)) {
+                        // ถ้ามีข้อมูล ให้ไฮไลท์สีเขียว
+                        dayElem.classList.add('has-data');
+                    } else if (dayElem.dateObj < today) {
+                        // ถ้าไม่มีข้อมูล และเป็นอดีตไปแล้ว ให้ขึ้นสีแดง (ลืมลงข้อมูล)
+                        dayElem.classList.add('no-data-past');
+                    }
+                }
             });
-
-            // คำนวณวันที่ปัจจุบัน
-            let today = new Date();
-            let todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-            
-            // ถ้าวันนี้มีข้อมูล ให้ตั้งค่าเป็นวันนี้ ถ้าไม่มีให้โชว์วันล่าสุดแทน
-            if(uniqueDates.includes(todayStr)) {
-                select.value = todayStr;
-            } else if (uniqueDates.length > 0) {
-                select.value = uniqueDates[0];
-            }
+            // รันฟิลเตอร์รอบแรกสุดเพื่อแสดงข้อมูล
+            applyFilter(availableDates[availableDates.length - 1]);
         }
 
-        function applyFilter() {
-            try {
-                let selectedDate = document.getElementById('dateFilter').value;
-                if(!selectedDate) return;
-                
-                // ดึงข้อมูลวันล่าสุดที่เลือก เพื่ออัปเดตตัวเลข/เกจบนสุด
-                let targetDataList = globalData.filter(d => d.dateStr === selectedDate);
-                if(targetDataList.length > 0) {
-                    updateDashboard(targetDataList[targetDataList.length - 1]);
-                }
-
-                // ดึงข้อมูลทั้งเดือน เพื่อวาดกราฟและตาราง
-                let selectedMonth = selectedDate.substring(0, 7); 
-                let monthData = globalData.filter(d => d.monthStr === selectedMonth);
-                
-                renderChart(monthData);
-                updateHistoryTable(monthData);
-            } catch(e) {
-                console.error("Error during filtering: ", e);
+        function applyFilter(selectedDate) {
+            if(!selectedDate) return;
+            
+            let targetDataList = globalData.filter(d => d.dateStr === selectedDate);
+            if(targetDataList.length > 0) {
+                updateDashboard(targetDataList[targetDataList.length - 1]); // ดึงอันล่าสุดของวัน
             }
+
+            let selectedMonth = selectedDate.substring(0, 7); 
+            let monthData = globalData.filter(d => d.monthStr === selectedMonth);
+            
+            renderChart(monthData);
+            updateHistoryTable(monthData);
         }
 
         function updateDashboard(data) {
@@ -408,7 +412,6 @@
             document.getElementById('valRej').innerText = data.rej || "0.00"; 
             document.getElementById('valRec').innerText = data.rec || "0.00"; 
 
-            // แท่งแก้ว 3D
             let perm = data.flow_perm || 0;
             let conc = data.flow_conc || 0;
             let temp = data.temp || 0;
@@ -416,7 +419,6 @@
             document.getElementById('bobReject').style.bottom = (conc / 40 * 100) + "%";
             document.getElementById('thermoFluid').style.height = (temp / 40 * 100) + "%";
 
-            // ป้ายสถานะ
             const setBadge = (id, val) => {
                 let el = document.getElementById(id);
                 if(val === "Yes" || val === "yes" || val === "YES") { el.className = "badge bg-success"; el.innerText = "Yes"; }
@@ -432,14 +434,12 @@
             setBadge('valAqua', data.aqua);
             document.getElementById('valBrine').innerText = data.brine || "-";
 
-            // อัปเดตเข็มไมล์ 
             gauges['gFeed'].setOption({ series: [{ data: [{ value: data.press_feed || 0 }] }] });
             gauges['gSand'].setOption({ series: [{ data: [{ value: data.press_sand || 0 }] }] });
             gauges['gC1'].setOption({ series: [{ data: [{ value: data.press_c1 || 0 }] }] });
             gauges['gC2'].setOption({ series: [{ data: [{ value: data.press_c2 || 0 }] }] });
             gauges['gSoft'].setOption({ series: [{ data: [{ value: data.press_soft || 0 }] }] });
             gauges['gCart'].setOption({ series: [{ data: [{ value: data.press_cart || 0 }] }] });
-            
             gauges['gRoPump'].setOption({ series: [{ data: [{ value: data.press_ro_pump || 0 }] }] });
             gauges['gConcPress'].setOption({ series: [{ data: [{ value: data.press_conc || 0 }] }] });
             gauges['gPermPress'].setOption({ series: [{ data: [{ value: data.press_perm || 0 }] }] });
@@ -448,14 +448,10 @@
         function renderChart(monthData) {
             if(!monthlyChart) monthlyChart = echarts.init(document.getElementById('monthlyChart'));
             
-            // หาจุดล่าสุดของแต่ละวันในเดือนนั้น (ป้องกันจุดซ้ำถ้ากรอกหลายครั้งในวันเดียว)
             let dailyMap = {};
             monthData.forEach(d => { dailyMap[d.dateStr] = d; });
             
-            // เรียงวันที่จากน้อยไปมาก 1...31
             let sortedDates = Object.keys(dailyMap).sort((a,b) => a.localeCompare(b));
-            
-            // แสดงเฉพาะเลขวันที่ 1, 2, 3 บนกราฟ
             let datesLabels = sortedDates.map(d => dailyMap[d].dayNum);
             let condData = sortedDates.map(d => dailyMap[d].cond_ro || 0);
 
@@ -475,14 +471,11 @@
         function updateHistoryTable(monthData) {
             const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = "";
-            
-            // ตารางเรียงจาก ข้อมูลล่าสุด(ด้านบน) ลงไปเก่าสุด
             let sorted = [...monthData].sort((a,b) => b.dateStr.localeCompare(a.dateStr));
             
             sorted.forEach(row => {
                 let tr = document.createElement('tr');
                 let condClass = (row.cond_ro && row.cond_ro < 10) ? 'text-success' : 'text-danger';
-                
                 tr.innerHTML = `
                     <td><small class="text-secondary">${row.timeDisplay || '-'}</small></td>
                     <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
@@ -498,13 +491,8 @@
         window.onload = () => {
             ['gFeed', 'gSand', 'gC1', 'gC2', 'gSoft', 'gCart'].forEach(id => createGauge(id, 100, false));
             ['gRoPump', 'gConcPress', 'gPermPress'].forEach(id => createGauge(id, 200, true));
-            
             loadData();
-
-            window.addEventListener('resize', () => {
-                Object.values(gauges).forEach(g => g.resize());
-                if(monthlyChart) monthlyChart.resize();
-            });
+            window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
         };
     </script>
 </body>
