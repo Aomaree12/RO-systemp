@@ -12,13 +12,13 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         body {
-            background-color: #0f172a; /* พื้นหลังสีดำกรมท่า ดูน่าเชื่อถือ */
+            background-color: #0f172a;
             color: #e2e8f0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .card-custom {
             background-color: #1e293b;
-            border-radius: 20px; /* ขอบโค้งมนตามสไตล์ */
+            border-radius: 20px;
             border: 1px solid #334155;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             padding: 20px;
@@ -31,132 +31,76 @@
             text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
         /* Thermometer CSS */
-        .thermo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-        }
-        .thermo-glass {
-            width: 30px;
-            height: 120px;
-            background: #0f172a;
-            border: 2px solid #64748b;
-            border-radius: 20px;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-        }
-        .thermo-fluid {
-            position: absolute;
-            bottom: 2px;
-            left: 2px;
-            right: 2px;
-            height: 60%; /* จำลองอุณหภูมิ 25 องศา */
-            background: linear-gradient(to top, #3b82f6, #10b981); /* สีเปลี่ยนตามอุณหภูมิ */
-            border-radius: 15px;
-            transition: height 1s ease;
-        }
-        .thermo-bulb {
-            width: 44px;
-            height: 44px;
-            background: #3b82f6;
-            border-radius: 50%;
-            position: absolute;
-            bottom: -25px;
-            left: -9px;
-            border: 2px solid #64748b;
-            z-index: 1;
-        }
+        .thermo-container { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .thermo-glass { width: 30px; height: 120px; background: #0f172a; border: 2px solid #64748b; border-radius: 20px; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .thermo-fluid { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, #3b82f6, #ef4444); border-radius: 15px; transition: height 1s ease; }
+        .thermo-bulb { width: 44px; height: 44px; background: #3b82f6; border-radius: 50%; position: absolute; bottom: -25px; left: -9px; border: 2px solid #64748b; z-index: 1; }
+        
         /* Rotameter (แท่งแก้ว LPM) CSS */
-        .rotameter {
-            width: 50px;
-            height: 250px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #475569;
-            border-radius: 10px;
-            position: relative;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-        }
-        .rotameter::before {
-            content: '';
-            position: absolute;
-            left: 5px;
-            height: 100%;
-            width: 10px;
-            border-left: 1px dashed #64748b; /* ขีดสเกล */
-        }
-        .float-bob {
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(circle, #ef4444, #991b1b);
-            border-radius: 50%;
-            position: absolute;
-            bottom: 60%; /* ตำแหน่งลูกลอย */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-            transition: bottom 1s ease;
-        }
-        .gauge-chart {
-            width: 100%;
-            height: 250px;
-        }
-        .header-title {
-            background: linear-gradient(90deg, #1e293b, #0f172a);
-            border-radius: 20px;
-            border-left: 5px solid #38bdf8;
+        .rotameter { width: 50px; height: 250px; background: rgba(255, 255, 255, 0.05); border: 2px solid #475569; border-radius: 10px; position: relative; margin: 0 auto; display: flex; justify-content: center; }
+        .rotameter::before { content: ''; position: absolute; left: 5px; height: 100%; width: 10px; border-left: 1px dashed #64748b; }
+        .float-bob { width: 30px; height: 30px; background: radial-gradient(circle, #ef4444, #991b1b); border-radius: 50%; position: absolute; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: bottom 1s ease; }
+        
+        .gauge-chart { width: 100%; height: 250px; }
+        .header-title { background: linear-gradient(90deg, #1e293b, #0f172a); border-radius: 20px; border-left: 5px solid #38bdf8; }
+        
+        /* Table Styles */
+        .table-dark-custom { background-color: #0f172a; color: #cbd5e1; border-color: #334155; }
+        .table-dark-custom th { background-color: #1e293b; color: #38bdf8; }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
     </style>
 </head>
 <body class="p-4">
 
-    <!-- Header & Filters -->
+    <!-- Loading Screen -->
+    <div id="loadingOverlay">
+        <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
+        <h4 class="mt-3 text-info">กำลังโหลดข้อมูลจาก Google Sheet...</h4>
+    </div>
+
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="header-title p-4 d-flex justify-content-between align-items-center shadow">
                 <div>
                     <h2 class="m-0 text-white"><i class="fas fa-tint text-info me-3"></i>ระบบติดตามน้ำบริสุทธิ์ RO</h2>
-                    <h5 class="text-secondary mt-2">สถาบันบำราศนราดูร (Hemodialysis RO Water System)</h5>
+                    <h5 class="text-secondary mt-2">สถาบันบำราศนราดูร | อัปเดตล่าสุด: <span id="currentDate" class="text-white">-</span></h5>
                 </div>
-                <div class="d-flex gap-2">
-                    <select class="form-select bg-dark text-white border-secondary rounded-3">
-                        <option>วันนี้</option>
-                        <option>24 กันยายน</option>
-                    </select>
-                    <select class="form-select bg-dark text-white border-secondary rounded-3">
-                        <option>เดือนปัจจุบัน</option>
-                        <option>กันยายน</option>
-                    </select>
-                    <select class="form-select bg-dark text-white border-secondary rounded-3">
-                        <option>ปี 2026</option>
-                    </select>
-                    <button class="btn btn-info rounded-3 px-4"><i class="fas fa-filter"></i> กรอง</button>
+                <div class="text-end">
+                    <span class="badge bg-success fs-6"><i class="fas fa-check-circle"></i> เชื่อมต่อฐานข้อมูลแล้ว</span><br>
+                    <small class="text-muted">ผู้บันทึก: <span id="operatorName" class="text-info">-</span></small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Digital Values (ORP, Cond, Temp) -->
+    <!-- Digital Values -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="card-custom text-center">
                 <h5 class="text-secondary">ORP (น้ำเข้า)</h5>
-                <div class="digital-value text-success mt-2">120 <span class="fs-5">mV</span></div>
-                <small class="text-muted">มาตรฐาน < 200 mV (ไม่มีคลอรีน)</small>
+                <div class="digital-value text-warning mt-2"><span id="valOrp">0</span> <span class="fs-5">mV</span></div>
+                <small class="text-muted">ข้อมูลจริงจากเซ็นเซอร์</small>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card-custom text-center">
                 <h5 class="text-secondary">Conductivity (น้ำดิบ)</h5>
-                <div class="digital-value text-warning mt-2">245 <span class="fs-5">µS/cm</span></div>
-                <small class="text-muted">ค่าความนำไฟฟ้าน้ำประปา</small>
+                <div class="digital-value text-warning mt-2"><span id="valCondRaw">0</span> <span class="fs-5">µS/cm</span></div>
+                <small class="text-muted">เกณฑ์มาตรฐาน < 500 µS/cm</small>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card-custom text-center">
                 <h5 class="text-secondary">Conductivity (น้ำ RO)</h5>
-                <div class="digital-value mt-2">2.1 <span class="fs-5">µS/cm</span></div>
-                <small class="text-success"><i class="fas fa-check-circle"></i> ผ่านเกณฑ์ TRT (< 5)</small>
+                <div class="digital-value mt-2"><span id="valCondRo">0</span> <span class="fs-5">µS/cm</span></div>
+                <small class="text-success"><i class="fas fa-check-circle"></i> ผ่านเกณฑ์ TRT (< 10)</small>
             </div>
         </div>
         <div class="col-md-3">
@@ -164,154 +108,237 @@
                 <h5 class="text-secondary text-center">อุณหภูมิน้ำ RO</h5>
                 <div class="thermo-container mt-3">
                     <div class="thermo-glass">
-                        <div class="thermo-fluid"></div>
+                        <div id="thermoFluid" class="thermo-fluid" style="height: 0%;"></div>
                         <div class="thermo-bulb"></div>
                     </div>
                     <div>
-                        <div class="digital-value text-white">25.4<span class="fs-5">°C</span></div>
-                        <span class="badge bg-success mt-1">Normal</span>
+                        <div class="digital-value text-white"><span id="valTemp">0</span><span class="fs-5">°C</span></div>
+                        <span class="badge bg-success mt-1">Normal (< 35°C)</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Analog Gauges (Race Car Style) & LPM Rotameters -->
+    <!-- Analog Gauges & LPM Rotameters -->
     <div class="row g-4 mb-4">
-        <!-- Pressure Gauges -->
         <div class="col-md-8">
             <div class="card-custom">
-                <h5 class="text-secondary mb-3"><i class="fas fa-tachometer-alt me-2"></i>แรงดันในระบบ (Pressure Drop) - บาร์ (Bar)</h5>
+                <h5 class="text-secondary mb-3"><i class="fas fa-tachometer-alt me-2"></i>แรงดันในระบบก่อนเข้า RO - หน่วย: PSI</h5>
                 <div class="row">
                     <div class="col-md-4"><div id="gauge1" class="gauge-chart"></div><div class="text-center text-muted">ถังทราย (Sand Filter)</div></div>
-                    <div class="col-md-4"><div id="gauge2" class="gauge-chart"></div><div class="text-center text-muted">ถังคาร์บอน (Carbon)</div></div>
+                    <div class="col-md-4"><div id="gauge2" class="gauge-chart"></div><div class="text-center text-muted">ถังคาร์บอน (Carbon 1)</div></div>
                     <div class="col-md-4"><div id="gauge3" class="gauge-chart"></div><div class="text-center text-muted">ถังเรซิ่น (Softener)</div></div>
                 </div>
             </div>
         </div>
         
-        <!-- LPM Flow Meters -->
         <div class="col-md-4">
             <div class="card-custom">
-                <h5 class="text-secondary mb-3"><i class="fas fa-water me-2"></i>อัตราการไหล (LPM)</h5>
+                <h5 class="text-secondary mb-3"><i class="fas fa-water me-2"></i>อัตราการไหล (Scale 0-40 LPM)</h5>
                 <div class="d-flex justify-content-around mt-4">
                     <div class="text-center">
                         <div class="rotameter">
-                            <div class="float-bob" style="bottom: 70%;"></div>
+                            <div id="bobPermeate" class="float-bob" style="bottom: 0%;"></div>
                         </div>
                         <h6 class="mt-4 text-info">น้ำดี (Permeate)</h6>
-                        <h4>15.0 LPM</h4>
+                        <h4><span id="valPermeate">0</span> LPM</h4>
                     </div>
                     <div class="text-center">
                         <div class="rotameter">
-                            <div class="float-bob" style="bottom: 30%; background: radial-gradient(circle, #f59e0b, #b45309);"></div>
+                            <div id="bobReject" class="float-bob" style="bottom: 0%; background: radial-gradient(circle, #f59e0b, #b45309);"></div>
                         </div>
-                        <h6 class="mt-4 text-warning">น้ำทิ้ง (Reject)</h6>
-                        <h4>8.5 LPM</h4>
+                        <h6 class="mt-4 text-warning">น้ำทิ้ง (Concentrate)</h6>
+                        <h4><span id="valReject">0</span> LPM</h4>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Monthly Graph -->
+    <!-- Monthly Graph & Data Table -->
     <div class="row g-4">
-        <div class="col-12">
+        <div class="col-md-5">
             <div class="card-custom">
-                <h5 class="text-secondary mb-3"><i class="fas fa-chart-area me-2"></i>ภาพรวมแนวโน้มคุณภาพน้ำ (Conductivity รายเดือน)</h5>
+                <h5 class="text-secondary mb-3"><i class="fas fa-chart-area me-2"></i>ภาพรวม Conductivity น้ำ RO</h5>
                 <div id="monthlyChart" style="width: 100%; height: 350px;"></div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card-custom">
+                <h5 class="text-secondary mb-3"><i class="fas fa-table me-2"></i>ตารางตรวจเช็คระบบน้ำ RO ย้อนหลัง</h5>
+                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover table-dark-custom text-center align-middle">
+                        <thead class="sticky-top">
+                            <tr>
+                                <th>วัน-เวลา</th>
+                                <th>Cond RO</th>
+                                <th>Temp (°C)</th>
+                                <th>P. Sand (PSI)</th>
+                                <th>Flow (LPM)</th>
+                                <th>ผู้ตรวจ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- ข้อมูลตารางจะถูกสร้างที่นี่ -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script>
-        // ฟังก์ชันสร้าง Gauge สไตล์รถแข่ง
-        function createRaceGauge(elementId, value, name) {
-            var chart = echarts.init(document.getElementById(elementId));
-            var option = {
+        // URL ของ Google Apps Script ที่คุณให้มา
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6SFIkKLSar147bqNZ0LFcu_7RnJBTTtvL9SZoCYjS1cMMAkvhCAiR2jeujwKz7J1c/exec";
+
+        let gaugeSand, gaugeCarbon, gaugeSoftener, monthlyChartObj;
+
+        // ฟังก์ชันสร้าง Gauge 
+        function initGauges() {
+            const gaugeOption = (value) => ({
                 series: [{
-                    type: 'gauge',
-                    startAngle: 210,
-                    endAngle: -30,
-                    min: 0,
-                    max: 6,
-                    splitNumber: 6,
-                    itemStyle: {
-                        color: '#ef4444',
-                        shadowColor: 'rgba(0,138,255,0.45)',
-                        shadowBlur: 10,
-                        shadowOffsetX: 2,
-                        shadowOffsetY: 2
-                    },
-                    progress: { show: true, roundCap: true, width: 12 },
-                    pointer: {
-                        icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
-                        length: '75%',
-                        width: 10,
-                        offsetCenter: [0, '-5%'],
-                        itemStyle: { color: '#ef4444' }
-                    },
-                    axisLine: {
-                        lineStyle: { width: 12, color: [[0.7, '#38bdf8'], [0.9, '#f59e0b'], [1, '#ef4444']] }
-                    },
-                    axisTick: { distance: -20, length: 6, lineStyle: { color: '#fff', width: 1 } },
-                    splitLine: { distance: -25, length: 12, lineStyle: { color: '#fff', width: 2 } },
-                    axisLabel: { color: '#94a3b8', distance: 30, fontSize: 12 },
-                    detail: {
-                        valueAnimation: true,
-                        formatter: '{value} Bar',
-                        color: '#fff',
-                        fontSize: 18,
-                        offsetCenter: [0, '60%']
-                    },
+                    type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, splitNumber: 5,
+                    itemStyle: { color: '#ef4444', shadowColor: 'rgba(0,138,255,0.45)', shadowBlur: 10 },
+                    progress: { show: true, roundCap: true, width: 10 },
+                    pointer: { length: '75%', width: 8, itemStyle: { color: '#ef4444' } },
+                    axisLine: { lineStyle: { width: 10, color: [[0.5, '#38bdf8'], [0.8, '#f59e0b'], [1, '#ef4444']] } },
+                    axisTick: { distance: -15, length: 6, lineStyle: { color: '#fff', width: 1 } },
+                    splitLine: { distance: -20, length: 12, lineStyle: { color: '#fff', width: 2 } },
+                    axisLabel: { color: '#94a3b8', distance: 25, fontSize: 10 },
+                    detail: { valueAnimation: true, formatter: '{value} PSI', color: '#fff', fontSize: 16, offsetCenter: [0, '60%'] },
                     data: [{ value: value }]
                 }]
-            };
-            chart.setOption(option);
-            window.addEventListener('resize', () => chart.resize());
+            });
+
+            gaugeSand = echarts.init(document.getElementById('gauge1'));
+            gaugeCarbon = echarts.init(document.getElementById('gauge2'));
+            gaugeSoftener = echarts.init(document.getElementById('gauge3'));
+
+            gaugeSand.setOption(gaugeOption(0));
+            gaugeCarbon.setOption(gaugeOption(0));
+            gaugeSoftener.setOption(gaugeOption(0));
+
+            window.addEventListener('resize', () => { gaugeSand.resize(); gaugeCarbon.resize(); gaugeSoftener.resize(); });
         }
 
-        // Initialize Gauges
-        createRaceGauge('gauge1', 2.5, 'Sand');
-        createRaceGauge('gauge2', 2.3, 'Carbon');
-        createRaceGauge('gauge3', 2.1, 'Softener');
+        function updateGauges(sand, carbon, softener) {
+            gaugeSand.setOption({ series: [{ data: [{ value: sand }] }] });
+            gaugeCarbon.setOption({ series: [{ data: [{ value: carbon }] }] });
+            gaugeSoftener.setOption({ series: [{ data: [{ value: softener }] }] });
+        }
 
-        // Initialize Monthly Chart
-        var monthlyChart = echarts.init(document.getElementById('monthlyChart'));
-        var chartOption = {
-            tooltip: { trigger: 'axis' },
-            legend: { data: ['Cond น้ำ RO (µS/cm)'], textStyle: { color: '#e2e8f0' } },
-            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-            xAxis: {
-                type: 'category',
-                boundaryGap: false,
-                data: ['1 ก.ย.', '5 ก.ย.', '10 ก.ย.', '15 ก.ย.', '20 ก.ย.', '24 ก.ย.'],
-                axisLabel: { color: '#94a3b8' }
-            },
-            yAxis: {
-                type: 'value',
-                axisLabel: { color: '#94a3b8' },
-                splitLine: { lineStyle: { color: '#334155' } }
-            },
-            series: [
-                {
-                    name: 'Cond น้ำ RO (µS/cm)',
-                    type: 'line',
-                    smooth: true,
-                    itemStyle: { color: '#38bdf8' },
-                    areaStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(56,189,248,0.5)' },
-                            { offset: 1, color: 'rgba(56,189,248,0)' }
-                        ])
-                    },
-                    data: [1.8, 2.0, 1.9, 2.2, 2.0, 2.1]
+        // ฟังก์ชันสร้างกราฟรายเดือน
+        function initChart() {
+            monthlyChartObj = echarts.init(document.getElementById('monthlyChart'));
+            window.addEventListener('resize', () => monthlyChartObj.resize());
+        }
+
+        function updateMonthlyChart(data) {
+            // กรองเฉพาะข้อมูลที่มีวันที่ (ป้องกันแถวว่าง)
+            const validData = data.filter(d => d.timestamp);
+            
+            var chartOption = {
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: { type: 'category', boundaryGap: false, data: validData.map(d => {
+                    // ตัดเอาเฉพาะวันที่ (สมมติ format วันที่เว้นวรรคเวลา)
+                    return String(d.timestamp).split(' ')[0] || d.timestamp;
+                }), axisLabel: { color: '#94a3b8' } },
+                yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#334155' } } },
+                series: [{
+                    name: 'Cond น้ำ RO (µS/cm)', type: 'line', smooth: true, itemStyle: { color: '#38bdf8' },
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.5)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) },
+                    data: validData.map(d => d.cond_ro)
+                }]
+            };
+            monthlyChartObj.setOption(chartOption);
+        }
+
+        function updateHistoryTable(data) {
+            const tbody = document.getElementById("historyTableBody");
+            tbody.innerHTML = ""; 
+            // เอาแถวที่มีข้อมูลจริง และสลับให้ล่าสุดอยู่บนสุด
+            const validData = data.filter(d => d.timestamp).slice().reverse();
+            
+            validData.forEach(row => {
+                let tr = document.createElement("tr");
+                let condClass = (row.cond_ro && row.cond_ro < 10) ? 'text-success' : 'text-danger';
+                tr.innerHTML = `
+                    <td><small>${row.timestamp || '-'}</small></td>
+                    <td class="${condClass} fw-bold">${row.cond_ro || 0}</td>
+                    <td>${row.temp || 0}</td>
+                    <td>${row.press_sand || 0}</td>
+                    <td><span class="text-info">${row.flow_permeate || 0}</span> / <span class="text-warning">${row.flow_reject || 0}</span></td>
+                    <td>${row.operator || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ฟังก์ชันหลักสำหรับดึงข้อมูล
+        async function loadDashboardData() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                const realData = await response.json();
+                
+                // ปิดหน้าจอโหลด
+                document.getElementById('loadingOverlay').style.display = 'none';
+
+                if (!realData || realData.length === 0 || realData.error) {
+                    console.error("No data or error in response:", realData);
+                    return;
                 }
-            ]
-        };
-        monthlyChart.setOption(chartOption);
-        window.addEventListener('resize', () => monthlyChart.resize());
+
+                // ข้อมูลแถวล่าสุด (ข้ามแถวว่างถ้ามี)
+                const validData = realData.filter(d => d.timestamp);
+                if(validData.length === 0) return;
+                const latest = validData[validData.length - 1];
+
+                // อัปเดต Text
+                document.getElementById("currentDate").innerText = latest.timestamp || '-';
+                document.getElementById("operatorName").innerText = latest.operator || '-';
+                document.getElementById("valOrp").innerText = latest.orp || 0;
+                document.getElementById("valCondRaw").innerText = latest.cond_raw || 0;
+                document.getElementById("valCondRo").innerText = latest.cond_ro || 0;
+                document.getElementById("valTemp").innerText = latest.temp || 0;
+                document.getElementById("valPermeate").innerText = latest.flow_permeate || 0;
+                document.getElementById("valReject").innerText = latest.flow_reject || 0;
+
+                // อัปเดต หลอดแก้ว และ อุณหภูมิ
+                const maxFlow = 40;
+                let pctPermeate = ((latest.flow_permeate || 0) / maxFlow) * 100;
+                let pctReject = ((latest.flow_reject || 0) / maxFlow) * 100;
+                let pctTemp = ((latest.temp || 0) / 40) * 100;
+                
+                // จำกัดไม่ให้เกิน 100% หลอด
+                document.getElementById("bobPermeate").style.bottom = Math.min(pctPermeate, 90) + "%";
+                document.getElementById("bobReject").style.bottom = Math.min(pctReject, 90) + "%";
+                document.getElementById("thermoFluid").style.height = Math.min(pctTemp, 100) + "%";
+
+                // อัปเดตส่วนอื่นๆ
+                updateGauges(latest.press_sand || 0, latest.press_carbon || 0, latest.press_softener || 0);
+                updateMonthlyChart(realData);
+                updateHistoryTable(realData);
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+                document.getElementById('loadingOverlay').innerHTML = `<h4 class="text-danger">เกิดข้อผิดพลาดในการดึงข้อมูล<br>${error.message}</h4>`;
+            }
+        }
+
+        // เริ่มต้นการทำงาน
+        document.addEventListener('DOMContentLoaded', () => {
+            initGauges();
+            initChart();
+            loadDashboardData();
+            
+            // รีเฟรชข้อมูลอัตโนมัติทุกๆ 5 นาที (300,000 ms)
+            setInterval(loadDashboardData, 300000);
+        });
     </script>
 </body>
 </html>
