@@ -61,7 +61,7 @@
     <!-- Loading Screen -->
     <div id="loadingOverlay">
         <div class="spinner-border text-info" style="width: 3rem; height: 3rem;" role="status"></div>
-        <h4 class="mt-3 text-info">กำลังโหลดข้อมูลและปฏิทิน...</h4>
+        <h4 class="mt-3 text-info">กำลังโหลดข้อมูล...</h4>
     </div>
 
     <!-- Header & Filter -->
@@ -75,7 +75,7 @@
                 <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center">
                     <div class="input-group" style="width: 280px;">
                         <span class="input-group-text bg-dark text-info border-secondary"><i class="fas fa-calendar-alt"></i></span>
-                        <!-- เปลี่ยนจาก Dropdown เป็น Input สำหรับปฏิทิน -->
+                        <!-- ช่อง Input ปฏิทิน -->
                         <input type="text" id="dateFilter" class="form-control bg-dark text-white border-secondary" placeholder="คลิกเลือกวันที่...">
                     </div>
                     <div class="text-lg-end min-w-150">
@@ -255,33 +255,53 @@
             return isNaN(n) ? 0 : n;
         }
 
-        // ระบบแปลงวันที่ใหม่ ป้องกันบัค วัน/เดือน สลับกัน
+        // -------------------------------------------------------------
+        // ระบบแกะวันที่ใหม่ล่าสุด (แก้ปัญหา รูปแบบ 24/09/2026, 08:34:05)
+        // -------------------------------------------------------------
         function parseRobustDate(rawStr) {
-            if (!rawStr) return null;
-            let d = new Date(rawStr);
-            
-            // ถ้าระบบ Browser อ่านวันที่ผิดพลาด (Invalid Date) ให้เราสับเอง
-            if (isNaN(d.getTime())) {
-                let parts = String(rawStr).split(/[\sT]/)[0].split(/[-/]/);
-                if (parts.length === 3) {
-                    // ตรวจสอบว่าปีอยู่ข้างหน้าหรือข้างหลัง (เช่น 24/09/2026 -> 2026 คือปี)
-                    if (parts[2].length === 4) { d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`); }
-                }
+            let str = String(rawStr || "").trim();
+            if (!str) return null;
+
+            // ตัวอย่าง: "24/09/2026, 08:34:05" -> แยกช่องว่าง หรือ comma
+            let parts = str.split(/[\s,]+/); 
+            let datePart = parts[0]; 
+            let timePart = parts[1] || "00:00"; 
+
+            // ผ่าวันที่ด้วยเครื่องหมาย / หรือ -
+            let dParts = datePart.split('/');
+            if (dParts.length !== 3) {
+                dParts = datePart.split('-'); 
             }
-            if (isNaN(d.getTime())) return null;
 
-            let y = d.getFullYear();
-            let m = String(d.getMonth() + 1).padStart(2, '0');
-            let day = String(d.getDate()).padStart(2, '0');
-            let h = String(d.getHours()).padStart(2, '0');
-            let min = String(d.getMinutes()).padStart(2, '0');
+            if (dParts.length === 3) {
+                let day = dParts[0];
+                let month = dParts[1];
+                let year = dParts[2];
 
-            return {
-                dateStr: `${y}-${m}-${day}`,
-                monthStr: `${y}-${m}`,
-                dayNum: d.getDate(),
-                timeDisplay: `${day}/${m}/${y} ${h}:${min}` // โชว์ในตาราง
-            };
+                // ถ้าปีอยู่ข้างหน้า (YYYY-MM-DD)
+                if (year.length < 4 && dParts[0].length === 4) {
+                    year = dParts[0];
+                    month = dParts[1];
+                    day = dParts[2];
+                }
+
+                let y = String(year);
+                let m = String(month).padStart(2, '0');
+                let d = String(day).padStart(2, '0');
+
+                // จัดการเวลา
+                let tParts = timePart.split(':');
+                let h = String(tParts[0] || '0').padStart(2, '0');
+                let min = String(tParts[1] || '0').padStart(2, '0');
+
+                return {
+                    dateStr: `${y}-${m}-${d}`,         // Format ให้ระบบเข้าใจ (YYYY-MM-DD)
+                    monthStr: `${y}-${m}`,             // เอาไว้หากราฟรายเดือน
+                    dayNum: parseInt(d, 10),           // แสดงจุดแกน X บนกราฟ
+                    timeDisplay: `${d}/${m}/${y} ${h}:${min}` // โชว์ในตารางให้คนอ่าน (ไทย)
+                };
+            }
+            return null;
         }
 
         async function loadData() {
@@ -324,6 +344,7 @@
                         else if(lk.includes('ชื่อ-สกุล') || lk.includes('name')) mapped.operator = val;
                     }
 
+                    // เรียกใช้ฟังก์ชันแปลวันที่ใหม่ที่แม่นยำกว่า
                     let dateInfo = parseRobustDate(mapped.timestamp_raw);
                     if(dateInfo) {
                         mapped.dateStr = dateInfo.dateStr;
@@ -336,10 +357,11 @@
                     return mapped;
                 });
                 
+                // คัดเฉพาะแถวที่มีวันที่
                 globalData = globalData.filter(d => d.dateStr !== "");
                 
                 if (globalData.length > 0) {
-                    // เก็บรวบรวมวันที่ทั้งหมดที่มีข้อมูล
+                    // เก็บรวบรวมวันที่ทั้งหมดที่มีข้อมูล (ห้ามซ้ำ)
                     availableDates = [...new Set(globalData.map(d => d.dateStr))];
                     availableDates.sort((a,b) => a.localeCompare(b)); // เรียงจากเก่าไปใหม่
                     
@@ -353,45 +375,43 @@
             }
         }
 
-        // เริ่มการทำงานของปฏิทิน Flatpickr
         function initCalendar() {
             flatpickr("#dateFilter", {
                 locale: "th",
-                dateFormat: "Y-m-d", // ส่งค่าเป็น YYYY-MM-DD
+                dateFormat: "Y-m-d", // Format จริงที่ใช้ทำงาน
                 altInput: true, 
-                altFormat: "d/m/Y", // แสดงผลบนหน้าจอเป็น วัน/เดือน/ปี
-                enable: availableDates, // บังคับให้เลือกได้เฉพาะวันที่มีข้อมูล
-                defaultDate: availableDates[availableDates.length - 1], // ตั้งค่าเริ่มต้นเป็นวันล่าสุดที่มีข้อมูล
+                altFormat: "d/m/Y",  // Format ที่แสดงให้คนอ่านบนช่องปฏิทิน
+                enable: availableDates, // บังคับให้จิ้มได้เฉพาะวันที่มีข้อมูล
+                defaultDate: availableDates[availableDates.length - 1], // ตั้งค่าเริ่มต้นเป็น "วันล่าสุดที่มีในระบบ"
                 onChange: function(selectedDates, dateStr, instance) {
                     if(dateStr) applyFilter(dateStr);
                 },
-                // ระบายสีปฏิทิน
                 onDayCreate: function(dObj, dStr, fp, dayElem) {
                     let dateStrFormat = flatpickr.formatDate(dayElem.dateObj, "Y-m-d");
                     let today = new Date();
                     today.setHours(0,0,0,0);
                     
                     if (availableDates.includes(dateStrFormat)) {
-                        // ถ้ามีข้อมูล ให้ไฮไลท์สีเขียว
-                        dayElem.classList.add('has-data');
+                        dayElem.classList.add('has-data'); // วันที่มีข้อมูล = เขียว
                     } else if (dayElem.dateObj < today) {
-                        // ถ้าไม่มีข้อมูล และเป็นอดีตไปแล้ว ให้ขึ้นสีแดง (ลืมลงข้อมูล)
-                        dayElem.classList.add('no-data-past');
+                        dayElem.classList.add('no-data-past'); // วันที่ในอดีตที่ลืมลงข้อมูล = แดง
                     }
                 }
             });
-            // รันฟิลเตอร์รอบแรกสุดเพื่อแสดงข้อมูล
+            // โหลดข้อมูลขึ้นหน้าจอ
             applyFilter(availableDates[availableDates.length - 1]);
         }
 
         function applyFilter(selectedDate) {
             if(!selectedDate) return;
             
+            // ข้อมูลสำหรับเกจวัด
             let targetDataList = globalData.filter(d => d.dateStr === selectedDate);
             if(targetDataList.length > 0) {
-                updateDashboard(targetDataList[targetDataList.length - 1]); // ดึงอันล่าสุดของวัน
+                updateDashboard(targetDataList[targetDataList.length - 1]); 
             }
 
+            // ข้อมูลกราฟและตารางรายเดือน
             let selectedMonth = selectedDate.substring(0, 7); 
             let monthData = globalData.filter(d => d.monthStr === selectedMonth);
             
