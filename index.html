@@ -53,6 +53,14 @@
         .ai-result-box { display: none; background: rgba(56, 189, 248, 0.05); border: 1px solid #38bdf8; border-radius: 15px; padding: 15px; margin-top: 15px; }
 
         /* ===== ตารางประวัติ RO (กรอบโค้งมน ตัวอักษรขาว) ===== */
+        /* ===== ส่วนข้อมูลรายเดือน (ตัวเลือกเดือน + กราฟ) ===== */
+        .chart-box { background: #0f172a; border: 1px solid #334155; border-radius: 16px; padding: 14px 14px 6px; height: 100%; }
+        .chart-title { color: #fff; font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+        .chart-title small { color: #fff; font-weight: 400; font-size: 0.75rem; opacity: 0.9; }
+        .trend-chart { width: 100%; height: 270px; }
+        .btn-month { width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; border: 1px solid #475569; background: #0f172a; color: #fff; display: inline-flex; align-items: center; justify-content: center; padding: 0; transition: all 0.15s; }
+        .btn-month:hover:not(:disabled) { border-color: #38bdf8; color: #38bdf8; }
+        .btn-month:disabled { opacity: 0.35; cursor: not-allowed; }
         .history-chip { background: rgba(56,189,248,0.12); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.35); border-radius: 999px; padding: 4px 14px; font-size: 0.8rem; white-space: nowrap; }
         .ro-table-wrap { border-radius: 18px; border: 1px solid #334155; overflow: hidden; background: #0f172a; box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
         .ro-table-scroll { max-height: 420px; overflow: auto; }
@@ -190,19 +198,36 @@
         </div>
     </div>
 
-    <!-- โซนที่ 2: แรงดันระบบก่อนกรอง -->
+    <!-- โซนที่ 2: แรงดันระบบก่อนกรอง + การทำงาน & สารเคมี -->
     <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card-custom">
+        <div class="col-lg-8">
+            <div class="card-custom h-100">
                 <h6 class="text-secondary mb-3"><i class="fas fa-filter me-2"></i>แรงดันระบบกรองเบื้องต้น (Pre-Treatment)</h6>
                 <div class="row g-2">
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gFeed" class="gauge-chart"></div><span class="col-label">Feed pump Pressure<br>{> 40 psi}</span></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gSand" class="gauge-chart"></div><span class="col-label">Sand pressure<br>{psi}</span></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gC1" class="gauge-chart"></div><span class="col-label">Carbon 1 Pressure<br>{psi}</span></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gC2" class="gauge-chart"></div><span class="col-label">Carbon 2 Pressure<br>{psi}</span></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gSoft" class="gauge-chart"></div><span class="col-label">Softener pressure<br>{psi}</span></div>
-                    <div class="col-6 col-md-4 col-lg-2"><div id="gCart" class="gauge-chart"></div><span class="col-label">Cartridge Filter<br>{psi}</span></div>
+                    <div class="col-6 col-md-4"><div id="gFeed" class="gauge-chart"></div><span class="col-label">Feed pump Pressure<br>{> 40 psi}</span></div>
+                    <div class="col-6 col-md-4"><div id="gSand" class="gauge-chart"></div><span class="col-label">Sand pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4"><div id="gC1" class="gauge-chart"></div><span class="col-label">Carbon 1 Pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4"><div id="gC2" class="gauge-chart"></div><span class="col-label">Carbon 2 Pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4"><div id="gSoft" class="gauge-chart"></div><span class="col-label">Softener pressure<br>{psi}</span></div>
+                    <div class="col-6 col-md-4"><div id="gCart" class="gauge-chart"></div><span class="col-label">Cartridge Filter<br>{psi}</span></div>
                 </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-custom h-100">
+                <h6 class="text-secondary mb-3"><i class="fas fa-clipboard-check me-2"></i>การทำงาน & สารเคมี</h6>
+                <table class="table table-dark table-sm table-borderless align-middle m-0" style="font-size: 0.9rem;">
+                    <tbody>
+                        <tr><td class="text-secondary">Sand Clock</td><td class="text-end"><span id="valSandClk" class="badge bg-success">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 1 Clock</td><td class="text-end"><span id="valC1Clk" class="badge bg-success">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 1 Chlorine test {<0.1}</td><td class="text-end"><span id="valC1Cl" class="text-white">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 2 Clock</td><td class="text-end"><span id="valC2Clk" class="badge bg-success">-</span></td></tr>
+                        <tr><td class="text-secondary">Carbon 2 Chlorine test {<0.1}</td><td class="text-end"><span id="valC2Cl" class="text-white">-</span></td></tr>
+                        <tr><td class="text-secondary">Softener Clock</td><td class="text-end"><span id="valSoftClk" class="badge bg-success">-</span></td></tr>
+                        <tr><td class="text-secondary">Softener Brine Tank (12.5 kg)</td><td class="text-end text-info fw-bold" id="valBrine">-</td></tr>
+                        <tr><td class="text-secondary">Softener Aquadur test {<17.1}</td><td class="text-end"><span id="valAqua" class="text-white">-</span></td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -256,41 +281,36 @@
         </div>
     </div>
 
-    <!-- โซนที่ 4: สถานะ & กราฟ -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-4">
-            <div class="card-custom h-100">
-                <h6 class="text-secondary mb-3"><i class="fas fa-clipboard-check me-2"></i>การทำงาน & สารเคมี</h6>
-                <table class="table table-dark table-sm table-borderless align-middle m-0" style="font-size: 0.9rem;">
-                    <tbody>
-                        <tr><td class="text-secondary">Sand Clock</td><td class="text-end"><span id="valSandClk" class="badge bg-success">-</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 1 Clock</td><td class="text-end"><span id="valC1Clk" class="badge bg-success">-</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 1 Chlorine test {<0.1}</td><td class="text-end"><span id="valC1Cl" class="text-white">-</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 2 Clock</td><td class="text-end"><span id="valC2Clk" class="badge bg-success">-</span></td></tr>
-                        <tr><td class="text-secondary">Carbon 2 Chlorine test {<0.1}</td><td class="text-end"><span id="valC2Cl" class="text-white">-</span></td></tr>
-                        <tr><td class="text-secondary">Softener Clock</td><td class="text-end"><span id="valSoftClk" class="badge bg-success">-</span></td></tr>
-                        <tr><td class="text-secondary">Softener Brine Tank (12.5 kg)</td><td class="text-end text-info fw-bold" id="valBrine">-</td></tr>
-                        <tr><td class="text-secondary">Softener Aquadur test {<17.1}</td><td class="text-end"><span id="valAqua" class="text-white">-</span></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="col-lg-8">
-            <div class="card-custom h-100 d-flex flex-column">
-                <h6 class="text-secondary mb-3"><i class="fas fa-chart-line me-2"></i>กราฟแนวโน้ม Conductivity RO (ตลอดทั้งเดือน)</h6>
-                <div id="monthlyChart" class="flex-grow-1" style="min-height: 250px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- โซนที่ 5: ตารางย้อนหลัง RO -->
+    <!-- โซนที่ 4: ข้อมูลรายเดือน (กราฟแนวโน้ม + ตารางประวัติ ใช้ตัวเลือกเดือนเดียวกัน) -->
     <div class="row g-3 mb-4">
         <div class="col-12">
             <div class="card-custom">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                    <h6 class="text-secondary m-0"><i class="fas fa-table me-2"></i>ประวัติตรวจเช็คระบบน้ำ RO (ตลอดทั้งเดือน)</h6>
-                    <span id="historyMonthLabel" class="history-chip">-</span>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-3 border-bottom border-secondary">
+                    <h5 class="text-white m-0"><i class="fas fa-calendar-days text-info me-2"></i>ข้อมูลรายเดือน</h5>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" class="btn-month" id="monthPrev" title="เดือนก่อนหน้า"><i class="fas fa-chevron-left"></i></button>
+                        <select id="monthFilter" class="form-select form-select-sm ro-input rounded-pill px-3" style="width: 200px;" aria-label="เลือกเดือน"></select>
+                        <button type="button" class="btn-month" id="monthNext" title="เดือนถัดไป"><i class="fas fa-chevron-right"></i></button>
+                        <span id="historyMonthLabel" class="history-chip">-</span>
+                    </div>
                 </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-6">
+                        <div class="chart-box">
+                            <div class="chart-title"><i class="fas fa-chart-line me-2" style="color: #22c55e;"></i>กราฟแนวโน้ม RAW Conductivity <small>{&lt; 500 µS/cm}</small></div>
+                            <div id="rawChart" class="trend-chart"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="chart-box">
+                            <div class="chart-title"><i class="fas fa-chart-line me-2" style="color: #38bdf8;"></i>กราฟแนวโน้ม Conductivity RO <small>{&lt; 10 µS/cm}</small></div>
+                            <div id="monthlyChart" class="trend-chart"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-title mb-2"><i class="fas fa-table me-2 text-info"></i>ประวัติตรวจเช็คระบบน้ำ RO</div>
                 <div class="ro-table-wrap">
                     <div class="ro-table-scroll">
                         <table class="ro-table">
@@ -466,6 +486,9 @@
         let availableDates = [];
         let gauges = {};
         let monthlyChart;
+        let rawChart;
+        let currentMonthKey = null;
+        let availableMonths = [];
         let fp = null;
         let allCSFolders = [];
         let editPin = '';
@@ -610,7 +633,7 @@
         // ==========================================
         // โหลดข้อมูล (keepDate = วันที่ที่ต้องการให้คงไว้หลังโหลดใหม่)
         // ==========================================
-        async function loadData(keepDate) {
+        async function loadData(keepDate, keepMonth) {
             document.getElementById('loadingOverlay').style.display = 'flex';
             try {
                 const data = await fetchJson(SCRIPT_URL);
@@ -621,14 +644,17 @@
 
                 if (globalData.length > 0) {
                     availableDates = [...new Set(globalData.map(d => d.dateStr))].sort((a, b) => a.localeCompare(b));
+                    populateROMonthFilter();
                     let target = availableDates[availableDates.length - 1];
                     if (keepDate) {
                         if (availableDates.includes(keepDate)) target = keepDate;
                         else target = availableDates.filter(d => d <= keepDate).pop() || target;
                     }
                     initCalendar(target);
+                    setMonth(keepMonth || todayMonthKey()); // ค่าเริ่มต้น = เดือนปัจจุบัน
                 } else {
                     availableDates = [];
+                    availableMonths = [];
                     document.getElementById('historyTableBody').innerHTML = `<tr><td colspan="7" class="py-4 text-secondary">ยังไม่มีข้อมูล</td></tr>`;
                 }
             } catch (e) {
@@ -711,10 +737,7 @@
                 analyzeWaterSystem(currentDayData);
                 document.getElementById('aiResultBox').style.display = 'none';
             }
-            let selectedMonth = selectedDate.substring(0, 7); 
-            let monthData = globalData.filter(d => d.monthStr === selectedMonth);
-            renderChart(monthData);
-            updateHistoryTable(monthData, selectedMonth);
+            setMonth(selectedDate.substring(0, 7)); // ส่วนข้อมูลรายเดือนเปลี่ยนตามวันที่เลือก
         }
 
         function updateDashboard(data) {
@@ -755,21 +778,106 @@
             gauges['gPermPress'].setOption({ series: [{ data: [{ value: data.press_perm || 0 }] }] });
         }
 
-        function renderChart(monthData) {
-            if(!monthlyChart) monthlyChart = echarts.init(document.getElementById('monthlyChart'));
-            let dailyMap = {};
-            monthData.forEach(d => { dailyMap[d.dateStr] = d; });
-            let sortedDates = Object.keys(dailyMap).sort((a,b) => a.localeCompare(b));
-            let datesLabels = sortedDates.map(d => dailyMap[d].dayNum);
-            let condData = sortedDates.map(d => dailyMap[d].cond_ro || 0);
+        // ==========================================
+        // ส่วนข้อมูลรายเดือน: ตัวเลือกเดือนเดียว คุมทั้งกราฟและตาราง
+        // ==========================================
+        function todayMonthKey() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+        function monthLabel(key) {
+            const [y, m] = key.split('-').map(Number);
+            return `${csMonthNamesFull[m - 1] || m} ${y + 543}`;
+        }
 
-            monthlyChart.setOption({
-                tooltip: { trigger: 'axis', formatter: 'วันที่ {b} : {c} µS/cm' },
-                grid: { left: '3%', right: '4%', bottom: '5%', top: '10%', containLabel: true },
-                xAxis: { type: 'category', boundaryGap: false, data: datesLabels, axisLabel: { color: '#94a3b8' } },
-                yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: '#334155' } } },
-                series: [{ name: 'Cond RO', type: 'line', smooth: true, itemStyle: { color: '#38bdf8' }, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(56,189,248,0.5)' }, { offset: 1, color: 'rgba(56,189,248,0)' }]) }, data: condData }]
+        function populateROMonthFilter() {
+            availableMonths = [...new Set(globalData.map(d => d.monthStr))].sort((a, b) => b.localeCompare(a));
+            const cur = todayMonthKey();
+            document.getElementById('monthFilter').innerHTML = availableMonths
+                .map(k => `<option value="${k}">${monthLabel(k)}${k === cur ? ' (เดือนนี้)' : ''}</option>`).join('');
+        }
+
+        function setMonth(key) {
+            if (!availableMonths.length) return;
+            if (!availableMonths.includes(key)) {
+                // เดือนที่ขอยังไม่มีข้อมูล → ใช้เดือนปัจจุบัน ถ้าไม่มีอีกใช้เดือนล่าสุดที่มีข้อมูล
+                key = availableMonths.includes(todayMonthKey()) ? todayMonthKey() : availableMonths[0];
+            }
+            currentMonthKey = key;
+            document.getElementById('monthFilter').value = key;
+            const idx = availableMonths.indexOf(key);
+            document.getElementById('monthPrev').disabled = idx >= availableMonths.length - 1;
+            document.getElementById('monthNext').disabled = idx <= 0;
+
+            const monthData = globalData.filter(d => d.monthStr === key);
+            renderTrendCharts(monthData, key);
+            updateHistoryTable(monthData, key);
+        }
+
+        function stepMonth(dir) { // dir = -1 เดือนก่อนหน้า, +1 เดือนถัดไป
+            const idx = availableMonths.indexOf(currentMonthKey);
+            const next = availableMonths[idx - dir];
+            if (next) setMonth(next);
+        }
+
+        function buildTrendOption(monthData, key, field, opt) {
+            const white = '#ffffff';
+            const [y, m] = key.split('-').map(Number);
+            const dailyMap = {};
+            monthData.forEach(d => { dailyMap[d.dateStr] = d; }); // ใช้รายการล่าสุดของแต่ละวัน
+            const dates = Object.keys(dailyMap).sort((a, b) => a.localeCompare(b));
+            const labels = dates.map(d => dailyMap[d].dayNum);
+            const values = dates.map(d => {
+                const v = parseFloat(dailyMap[d][field]);
+                if (!v) return { value: null };
+                return { value: v, itemStyle: { color: v >= opt.limit ? '#ef4444' : opt.color } };
             });
+            const hasData = values.some(p => p.value !== null);
+
+            return {
+                animationDuration: 600,
+                textStyle: { color: white, fontFamily: "'Segoe UI', sans-serif" },
+                tooltip: {
+                    trigger: 'axis', backgroundColor: '#0f172a', borderColor: opt.color, textStyle: { color: white },
+                    formatter: p => {
+                        const it = p[0];
+                        const val = (it.value === null || it.value === undefined) ? 'ไม่มีข้อมูล' : `${it.value} µS/cm`;
+                        return `วันที่ ${it.name} ${TH_MONTH_SHORT[m - 1]} ${y + 543}<br><span style="color:${opt.color}">●</span> ${opt.name} : <b>${val}</b>`;
+                    }
+                },
+                grid: { left: 8, right: 16, bottom: 8, top: 34, containLabel: true },
+                xAxis: {
+                    type: 'category', boundaryGap: false, data: labels,
+                    axisLabel: { color: white }, axisLine: { lineStyle: { color: '#94a3b8' } }, axisTick: { lineStyle: { color: '#94a3b8' } }
+                },
+                yAxis: {
+                    type: 'value', name: 'µS/cm', nameTextStyle: { color: white, align: 'left' },
+                    axisLabel: { color: white }, splitLine: { lineStyle: { color: '#334155' } },
+                    max: v => Math.ceil((Number.isFinite(v.max) ? Math.max(v.max, opt.limit) : opt.limit) * 1.15)
+                },
+                graphic: hasData ? [] : [{ type: 'text', left: 'center', top: 'middle', style: { text: 'ไม่มีข้อมูลในเดือนนี้', fill: white, fontSize: 14 } }],
+                series: [{
+                    name: opt.name, type: 'line', smooth: true, symbol: 'circle', symbolSize: 7, connectNulls: false,
+                    lineStyle: { color: opt.color, width: 2.5 }, itemStyle: { color: opt.color },
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: opt.area }, { offset: 1, color: 'rgba(15,23,42,0)' }]) },
+                    markLine: {
+                        silent: true, symbol: 'none',
+                        lineStyle: { color: '#ef4444', type: 'dashed', width: 1.5 },
+                        label: { color: white, formatter: `เกณฑ์ ${opt.limit}`, position: 'insideEndTop' },
+                        data: [{ yAxis: opt.limit }]
+                    },
+                    data: values
+                }]
+            };
+        }
+
+        function renderTrendCharts(monthData, key) {
+            if (!rawChart) rawChart = echarts.init(document.getElementById('rawChart'));
+            if (!monthlyChart) monthlyChart = echarts.init(document.getElementById('monthlyChart'));
+            rawChart.setOption(buildTrendOption(monthData, key, 'cond_raw',
+                { name: 'RAW Conductivity', color: '#22c55e', area: 'rgba(34,197,94,0.45)', limit: 500 }), true);
+            monthlyChart.setOption(buildTrendOption(monthData, key, 'cond_ro',
+                { name: 'Conductivity RO', color: '#38bdf8', area: 'rgba(56,189,248,0.45)', limit: 10 }), true);
         }
 
         // ==========================================
@@ -778,10 +886,7 @@
         function updateHistoryTable(monthData, monthKey) {
             const tbody = document.getElementById('historyTableBody');
             const label = document.getElementById('historyMonthLabel');
-            if (monthKey) {
-                const [y, m] = monthKey.split('-').map(Number);
-                label.textContent = `${csMonthNamesFull[m - 1] || m} ${y + 543} · ${monthData.length} รายการ`;
-            }
+            label.textContent = `${monthData.length} รายการ`;
             if (!monthData.length) {
                 tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-secondary">ไม่มีข้อมูลในเดือนนี้</td></tr>`;
                 return;
@@ -917,7 +1022,7 @@
                 getModal('editModal').hide();
                 showToast(`บันทึกการแก้ไขเรียบร้อย (${r.changed !== undefined ? r.changed : Object.keys(changed).length} ช่อง)`, 'success');
                 if (r.skipped && r.skipped.length) showToast('ช่องต่อไปนี้เป็นสูตรคำนวณในชีต จึงไม่ได้แก้ไข: ' + r.skipped.join(', '), 'warning');
-                await loadData(currentSelectedDate);
+                await loadData(currentSelectedDate, currentMonthKey);
             } catch (e) {
                 showToast(e.message, 'danger');
             } finally {
@@ -958,7 +1063,7 @@
                 });
                 getModal('deleteModal').hide();
                 showToast('ลบข้อมูลเรียบร้อย', 'success');
-                await loadData(currentSelectedDate);
+                await loadData(currentSelectedDate, currentMonthKey);
             } catch (e) {
                 showToast(e.message, 'danger');
             } finally {
@@ -1174,6 +1279,9 @@
         // ==========================================
         document.getElementById('csSearchInput').addEventListener('input', renderCSGroups);
         document.getElementById('csMonthFilter').addEventListener('change', renderCSGroups);
+        document.getElementById('monthFilter').addEventListener('change', e => setMonth(e.target.value));
+        document.getElementById('monthPrev').addEventListener('click', () => stepMonth(-1));
+        document.getElementById('monthNext').addEventListener('click', () => stepMonth(1));
         document.getElementById('editSaveBtn').addEventListener('click', saveEdit);
         document.getElementById('deleteConfirmBtn').addEventListener('click', confirmDelete);
 
@@ -1184,7 +1292,7 @@
             loadData();
             setTimeout(() => { loadCSFoldersViaFetch(); }, 500);
 
-            window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); });
+            window.addEventListener('resize', () => { Object.values(gauges).forEach(g => g.resize()); if(monthlyChart) monthlyChart.resize(); if(rawChart) rawChart.resize(); });
         };
     </script>
 </body>
